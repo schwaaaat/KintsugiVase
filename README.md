@@ -1,18 +1,21 @@
 # **🏺 KintsugiVase Splicer**
 
-**A Universal Toolpath Editor for combining the strength of solid prints with the beauty and speed of spiral vase mode.**
+**A Universal Toolpath Editor for combining the strength of solid prints with the beauty and speed of spiral vase mode.**  
 
-Standard "Spiral Vase Mode" is gorgeous and prints incredibly fast, but it is structurally weak. It forces your entire model to have zero infill and no solid bottom. **KintsugiVase Splicer** solves this by letting you "splice" two G-code files together directly in your browser.
 
-You can print a dense, heavy, perfectly solid base (ideal for stability, complex internal geometry, threading, or water-tightness) and instantly transition into a seamless, single-wall spiral for the upper aesthetics.  
+Standard "Spiral Vase Mode" is gorgeous and prints incredibly fast but forces your entire model to have zero infill and a single wall. There have been times while desigining objects that I wished I could print them with multiple walls and complex shapes at the base before transitioning to vase mode for the remainder of the print. **KintsugiVase Splicer** enables this capability by letting you splice two G-code files together directly in your browser.
+
+You can print a dense, heavy, perfectly solid base (ideal for stability, complex internal geometry, threading, or water-tightness) and instantly transition into a seamless, single-wall spiral for the upper aesthetics. 
+
+Try an online demo here: [https://schwaaaat.github.io/KintsugiVase/](https://schwaaaat.github.io/KintsugiVase/) 
 
 ![](/images/hero-screenshot.png)
 
 ## **✨ Features**
 
-* **Zero Installation:** It's a single, self-contained HTML file. Open it in any modern web browser.  
+* **Zero Installation:** It's a single, self-contained HTML file. Open it in any modern web browser. 
 * **Full 3D Toolpath Preview:** Built-in Three.js visualizer allows you to inspect the spliced toolpath line-by-line, visualizing speed, flow, and temperature.  
-* **LAN Mode Ready (.gcode.3mf):** Fully supports editing the G-code *inside* Bambu Studio .3mf exports, meaning your slicer thumbnails are preserved and you can still send the file directly to your printer over Wi-Fi/LAN (Perfect for Bambu P1S/X1C users).  
+* **LAN Mode Ready (.gcode.3mf):** Fully supports editing the G-code *inside* Orca Slicer or Bambu Studio .gcode.3mf exports, meaning your slicer thumbnails are preserved and you can still send the file directly to your printer over Wi-Fi/LAN.  
 * **Advanced Transition Tuning:** Single-wall prints often struggle to grip onto 100% solid bases. Use the explicit Wall Width tuner or Speed Tuning controls to smoothly ramp speeds and inject more plastic exactly where it's needed to prevent layer separation.
 
 ## **🚀 How to Use It**
@@ -22,9 +25,8 @@ You can print a dense, heavy, perfectly solid base (ideal for stability, complex
 * **PrusaSlicer:** Print Settings \-\> Output options \-\> Verbose G-code
 2. **Model Setup:** Place your model on the build plate in your slicer. *Do not move it once it is placed\!*  
 3. **Slice the Base:** Configure your slicer for standard printing (e.g., 2 perimeters, 15% infill). Ensure seam position is set to **Aligned** or **Aligned back** and top surface is set to **Concentric**. Slice the file and export it.  
-4. **Slice the Vase:** Without moving the model, turn on "Spiral Vase Mode" and make any changes necessary for vase mode printing like increased wall width, slower wall speed, etc. Also enabling "Smooth Spiral" will typically improve results. Slice the file again and export it.                                                              
-(**Note:** While you can change some of these settings like wall width and speed in **KintsugiVase**, it is always better to change them in the slicer before export when possible.)  
-![](/images/smooth-spiral.png)
+4. **Slice the Vase:** Without moving the model, turn on "Spiral Vase Mode" and make any changes necessary for vase mode printing like increased wall width, slower wall speed, etc. Enabling "Smooth Spiral" typically improves results. Slice the file again and export it.                                                              
+***Note:*** While you can change some of these settings like wall width and speed in **KintsugiVase**, when possible it is always better to change them in the slicer before export.  
 5. **Splice:** Open index.html. Upload your Base file, upload your Vase file, choose the exact Z-height where you want the transition to occur, and click "Splice & Generate Preview".
 
 ## **⚠️ Crucial Slicer Settings**
