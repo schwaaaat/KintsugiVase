@@ -59,10 +59,12 @@
             
             <div class="p-4 md:p-6 overflow-y-auto space-y-6 md:space-y-8 text-sm text-gray-300 custom-scrollbar">
                 
+                <!-- Intro -->
                 <section>
                     <p class="text-sm md:text-base text-gray-200"><strong>KintsugiVase</strong> allows you to "splice" two G-codes together. Print a dense, heavy, perfectly solid base (for stability, complex internal geometry like threads, or water-tightness) and instantly transition into a seamless, fast, single-wall spiral vase for the upper aesthetics.</p>
                 </section>
 
+                <!-- Crucial Slicer Settings -->
                 <section class="bg-gray-900 border border-amber-600/50 rounded-lg p-4 md:p-5">
                     <h3 class="text-base md:text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -206,7 +208,7 @@
                         <div id="wallThicknessControls" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-opacity">
                             <div>
                                 <label class="block text-[10px] font-medium text-gray-400 mb-1">Vase Sliced Width</label>
-                                <input type="number" id="slicedWidth" value="0.42" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-gray-400 text-sm font-mono cursor-not-allowed" title="Automatically detected from your Vase G-code file" readonly>
+                                <input type="number" id="slicedWidth" value="0.42" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-amber-400 text-sm font-mono cursor-not-allowed" title="Automatically detected from your Vase G-code file" readonly>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-medium text-gray-400 mb-1">Target Vase Width</label>
@@ -216,6 +218,7 @@
                     </div>
                 </div>
 
+                <!-- Advanced Settings Accordions -->
                 <details class="group bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
                     <summary class="p-2 md:p-3 text-xs md:text-sm font-medium text-gray-300 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center select-none">
                         Advanced Transition Tuning
@@ -223,6 +226,7 @@
                     </summary>
                     <div class="p-3 border-t border-gray-700 space-y-3 bg-gray-800">
                         
+                        <!-- Feature Toggle -->
                         <div class="flex items-center justify-between mb-1 border-b border-gray-700 pb-3">
                             <label for="useSpeedTuning" class="text-xs font-bold text-gray-300 cursor-pointer">Enable Speed Tuning</label>
                             <label class="relative inline-flex items-center cursor-pointer">
@@ -325,12 +329,13 @@
             <!-- Canvas Toolbar overlay for Camera Controls -->
             <div class="absolute top-2 right-2 md:top-4 md:right-4 z-10 flex gap-2">
                 <button id="homeViewBtn" class="bg-gray-800/80 hover:bg-gray-700 backdrop-blur border border-gray-600 text-white p-2 rounded shadow-lg transition-colors" title="Reset Default View">
-                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 </button>
                 <div class="relative group">
                     <button class="bg-gray-800/80 hover:bg-gray-700 backdrop-blur border border-gray-600 text-gray-300 p-2 rounded shadow-lg transition-colors" title="Camera Controls">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
+                    <!-- Wrapper with top-full and pt-2 to bridge the hover gap -->
                     <div class="absolute right-0 top-full pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
                         <div class="bg-gray-800 border border-gray-600 rounded shadow-xl text-xs text-gray-300 p-3">
                             <p class="font-bold text-white border-b border-gray-600 pb-1 mb-2">Camera Controls</p>
@@ -377,6 +382,7 @@
                 </div>
             </div>
 
+            <!-- Z Slider Control -->
             <div class="absolute bottom-2 left-2 right-2 md:bottom-6 md:left-6 md:right-6 z-10 bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex items-center gap-2 md:gap-4">
                 <span class="text-xs md:text-sm font-bold text-gray-300 w-12 md:w-16">Z-Slice:</span>
                 
@@ -806,6 +812,46 @@
             }
         });
 
+        // --- Binary Search for Z Snapping ---
+        // Fast algorithm to lock the slider thumb exclusively onto physical layer heights
+        function getClosestZ(arr, target) {
+            if (!arr || arr.length === 0) return target;
+            let left = 0;
+            let right = arr.length - 1;
+            
+            while (left <= right) {
+                let mid = Math.floor((left + right) / 2);
+                if (arr[mid] === target) return arr[mid];
+                if (arr[mid] < target) left = mid + 1;
+                else right = mid - 1;
+            }
+            
+            let closest = arr[0];
+            let minDiff = Infinity;
+            // Check neighbors of the insertion point to find the absolute closest match
+            for (let i = Math.max(0, left - 1); i <= Math.min(arr.length - 1, left + 1); i++) {
+                let diff = Math.abs(arr[i] - target);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = arr[i];
+                }
+            }
+            return closest;
+        }
+
+        zSlider.addEventListener('input', () => {
+            let val = parseFloat(zSlider.value);
+            
+            // Mathematically force the slider thumb to snap to the physically rendered layers
+            if (window.renderLayerHeights && window.renderLayerHeights.length > 0) {
+                val = getClosestZ(window.renderLayerHeights, val);
+                zSlider.value = val;
+            }
+
+            zSliderValue.textContent = `${val.toFixed(2)}mm`;
+            renderGeometry();
+        });
+
         transitionZInput.addEventListener('input', () => {
             updateZHint();
             updateSliderIndicator();
@@ -1229,6 +1275,7 @@
                 // 1. Process Base Print
                 const baseOutputObjs = [];
                 let currentFBase = 3000;
+                let currentPrintFBase = 3000; // Track actual print feedrate independently of travel moves
                 let isRelativeEBase = true; // Modern default
                 let lastEBase = 0;
                 let curZBase = 0;
@@ -1265,11 +1312,12 @@
                         if (eDelta > 0) {
                             totalExtrudedE += eDelta;
                             isExtr = true;
+                            currentPrintFBase = currentFBase; // Update active print feedrate
                         }
                         lastEBase = eRaw;
                     }
 
-                    baseOutputObjs.push({ text: line, isExtrusion: isExtr, origF: currentFBase, z: curZBase });
+                    baseOutputObjs.push({ text: line, isExtrusion: isExtr, origF: currentPrintFBase, z: curZBase });
                 }
 
                 if (!foundBaseLayers) {
@@ -1280,6 +1328,12 @@
                 const layersBeforeBase = parseInt(transLayersBefore.value) || 0;
                 const zoneBeforeZ = layersBeforeBase * nominalLayerHeight;
                 
+                // FIX: Calculate distance based on the ACTUAL highest layer of the Base print
+                let actualBaseMaxZ = 0;
+                for (let obj of baseOutputObjs) {
+                    if (obj.isExtrusion && obj.z > actualBaseMaxZ) actualBaseMaxZ = obj.z;
+                }
+                
                 if (advSpeedEnabled && zoneBeforeZ > 0) {
                     let targetF = (parseFloat(transSpeedInput.value) || 20) * 60; // mm/s to mm/min
                     let ramp = rampModeInput.value === 'ramp';
@@ -1287,11 +1341,13 @@
                     for (let i = 0; i < baseOutputObjs.length; i++) {
                         let obj = baseOutputObjs[i];
                         if (obj.isExtrusion) {
-                            let zDist = transitionZ - obj.z;
+                            let zDist = actualBaseMaxZ - obj.z; 
+                            
                             // If we are inside the slowdown zone
                             if (zDist <= zoneBeforeZ && zDist >= 0) {
                                 // Ratio: 0 at the start of the zone, 1 right at the splice layer
                                 let ratio = ramp ? (1.0 - (zDist / zoneBeforeZ)) : 1.0;
+                                ratio = Math.max(0, Math.min(1, ratio)); // Safety clamp
                                 let newF = obj.origF - (obj.origF - targetF) * ratio;
                                 
                                 let txt = obj.text;
@@ -1373,136 +1429,86 @@
                 let isRelativeEVase = true; // Injected M83
                 let lastEVase = 0; // Injected G92 E0
                 let currentFVase = 3000;
+                let currentPrintFVase = 3000; // Track actual print feedrate
+                let actualVaseMinZ = null; // Track absolute lowest Z of Vase
 
                 for (let line of vaseLines) {
-                    if (startAppending) {
-                        let outLine = line;
-                        
-                        const cleanedOut = cleanLine(outLine);
-                        if (cleanedOut.match(/^M82/)) isRelativeEVase = false;
-                        if (cleanedOut.match(/^M83/)) isRelativeEVase = true;
-                        if (cleanedOut.match(/^G92.*[Ee]0/)) lastEVase = 0;
+                    const cleaned = cleanLine(line);
 
-                        if (flowMultiplier !== 1.0) {
-                            outLine = outLine.replace(/([Ee])([+-]?[0-9.]+)/, (match, p1, p2) => {
-                                let eVal = parseFloat(p2);
-                                if (eVal > 0 || !isRelativeEVase) eVal *= flowMultiplier;
-                                return p1 + eVal.toFixed(5);
-                            });
-                        }
-                        
-                        const cz = getLayerZFromComment(outLine);
+                    // Skip lines until we find the transition layer
+                    if (!startAppending) {
+                        const cz = getLayerZFromComment(line);
                         if (cz !== null) {
                             vaseZ = cz;
-                            finalLayerCount++;
+                            startedPrintingVase = true;
+                        } else if (startedPrintingVase) {
+                            const pz = extractPhysicalZ(line);
+                            const eMatch = cleaned.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
+                            if (pz !== null && eMatch && parseFloat(eMatch[1]) > 0) {
+                                vaseZ = pz;
+                            }
+                        }
+
+                        if (startedPrintingVase && vaseZ >= transitionZ) {
+                            startAppending = true;
                         } else {
-                            const pz = extractPhysicalZ(outLine);
-                            if (pz !== null) vaseZ = pz;
+                            continue; 
                         }
-
-                        const fMatch = cleanedOut.match(/[Ff]([+-]?[0-9.]+)/);
-                        if (fMatch) currentFVase = parseFloat(fMatch[1]);
-                        let origF = currentFVase;
-
-                        const eMatch = cleanedOut.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
-                        let isExtr = false;
-                        if (eMatch) {
-                            let eRaw = parseFloat(eMatch[1]);
-                            let eDelta = isRelativeEVase ? eRaw : (eRaw - lastEVase);
-                            if (eDelta > 0) {
-                                totalExtrudedE += eDelta;
-                                isExtr = true;
-                            }
-                            lastEVase = eRaw;
-                        }
-
-                        // Apply Slowdown to Vase lines right after Transition using true Z distance
-                        if (advSpeedEnabled && zoneAfterZ > 0 && isExtr && vaseZ >= transitionZ) {
-                            let zDist = vaseZ - transitionZ;
-                            
-                            // Are we still inside the slowdown zone?
-                            if (zDist <= zoneAfterZ && zDist >= 0) {
-                                // Ratio: 0 right at the splice point, approaching 1 as it gets further away
-                                let ratio = rampVase ? (zDist / zoneAfterZ) : 0.0;
-                                let newF = targetFVase + (origF - targetFVase) * ratio;
-
-                                if (/[Ff][+-]?[0-9.]+/.test(outLine)) {
-                                    outLine = outLine.replace(/([Ff])([+-]?[0-9.]+)/, `F${newF.toFixed(0)}`);
-                                } else {
-                                    let commentIdx = outLine.indexOf(';');
-                                    if (commentIdx !== -1) {
-                                        outLine = outLine.slice(0, commentIdx) + ` F${newF.toFixed(0)} ` + outLine.slice(commentIdx);
-                                    } else {
-                                        outLine += ` F${newF.toFixed(0)}`;
-                                    }
-                                }
-                                // Tag this so we can explicitly restore the speed later
-                                forceRestoreF = origF;
-                                
-                            } else if (forceRestoreF !== null) {
-                                // We just exited the slowdown zone, immediately write a command to restore the original feedrate
-                                if (!/[Ff][+-]?[0-9.]+/.test(outLine)) {
-                                    let commentIdx = outLine.indexOf(';');
-                                    if (commentIdx !== -1) {
-                                        outLine = outLine.slice(0, commentIdx) + ` F${forceRestoreF.toFixed(0)} ` + outLine.slice(commentIdx);
-                                    } else {
-                                        outLine += ` F${forceRestoreF.toFixed(0)}`;
-                                    }
-                                }
-                                forceRestoreF = null; // Reset so it doesn't trigger again
-                            }
-                        }
-
-                        outputLines.push(outLine);
-                        continue;
                     }
 
-                    const cleaned = cleanLine(line);
-                    const cz = getLayerZFromComment(line);
+                    // Start parsing and modifying the Vase toolpath
+                    let outLine = line;
+                    const cleanedOut = cleanLine(outLine);
+                    
+                    if (cleanedOut.match(/^M82/)) isRelativeEVase = false;
+                    if (cleanedOut.match(/^M83/)) isRelativeEVase = true;
+                    if (cleanedOut.match(/^G92.*[Ee]0/)) lastEVase = 0;
+
+                    if (flowMultiplier !== 1.0) {
+                        outLine = outLine.replace(/([Ee])([+-]?[0-9.]+)/, (match, p1, p2) => {
+                            let eVal = parseFloat(p2);
+                            if (eVal > 0 || !isRelativeEVase) eVal *= flowMultiplier;
+                            return p1 + eVal.toFixed(5);
+                        });
+                    }
+                    
+                    const cz = getLayerZFromComment(outLine);
                     if (cz !== null) {
                         vaseZ = cz;
-                        startedPrintingVase = true;
-                    } else if (startedPrintingVase) {
-                        const pz = extractPhysicalZ(line);
-                        const eMatch = cleaned.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
-                        if (pz !== null && eMatch && parseFloat(eMatch[1]) > 0) {
-                            vaseZ = pz;
-                        }
+                        finalLayerCount++;
+                    } else {
+                        const pz = extractPhysicalZ(outLine);
+                        if (pz !== null) vaseZ = pz;
                     }
 
-                    if (startedPrintingVase && vaseZ >= transitionZ) {
-                        startAppending = true;
-                        let outLine = line;
-                        
-                        const cleanedOut = cleanLine(outLine);
-                        if (cleanedOut.match(/^M82/)) isRelativeEVase = false;
-                        if (cleanedOut.match(/^M83/)) isRelativeEVase = true;
-                        if (cleanedOut.match(/^G92.*[Ee]0/)) lastEVase = 0;
+                    const fMatch = cleanedOut.match(/[Ff]([+-]?[0-9.]+)/);
+                    if (fMatch) currentFVase = parseFloat(fMatch[1]);
 
-                        if (flowMultiplier !== 1.0) {
-                            outLine = outLine.replace(/([Ee])([+-]?[0-9.]+)/, (match, p1, p2) => {
-                                let eVal = parseFloat(p2);
-                                if (eVal > 0 || !isRelativeEVase) eVal *= flowMultiplier;
-                                return p1 + eVal.toFixed(5);
-                            });
+                    const eMatch = cleanedOut.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
+                    let isExtr = false;
+                    if (eMatch) {
+                        let eRaw = parseFloat(eMatch[1]);
+                        let eDelta = isRelativeEVase ? eRaw : (eRaw - lastEVase);
+                        if (eDelta > 0) {
+                            totalExtrudedE += eDelta;
+                            isExtr = true;
+                            currentPrintFVase = currentFVase; // Lock onto print speed only
+                            if (actualVaseMinZ === null) actualVaseMinZ = vaseZ; // Set the baseline for the ramp
                         }
-                        
-                        // Treat the very first vase line as the start of the slow zone 
-                        const fMatch = cleanLine(outLine).match(/[Ff]([+-]?[0-9.]+)/);
-                        if (fMatch) currentFVase = parseFloat(fMatch[1]);
-                        let origF = currentFVase;
-                        
-                        const eMatch = cleanLine(outLine).match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
-                        if (eMatch) {
-                            let eRaw = parseFloat(eMatch[1]);
-                            let eDelta = isRelativeEVase ? eRaw : (eRaw - lastEVase);
-                            if (eDelta > 0) totalExtrudedE += eDelta;
-                            lastEVase = eRaw;
-                        }
+                        lastEVase = eRaw;
+                    }
 
-                        // Apply the initial slowdown right at the slice layer
-                        if (advSpeedEnabled && zoneAfterZ > 0) {
-                            let newF = targetFVase; // Ratio is 0 for the absolute first line
+                    // Apply Slowdown to Vase lines right after Transition using true Z distance
+                    if (advSpeedEnabled && zoneAfterZ > 0 && actualVaseMinZ !== null) {
+                        let zDist = vaseZ - actualVaseMinZ;
+                        
+                        // Are we still inside the slowdown zone?
+                        if (isExtr && zDist <= zoneAfterZ + 0.001 && zDist >= 0) {
+                            // Ratio: 0 right at the splice point, approaching 1 as it gets further away
+                            let ratio = rampVase ? (zDist / zoneAfterZ) : 0.0;
+                            ratio = Math.max(0, Math.min(1, ratio)); // Safety clamp
+                            let newF = targetFVase + (currentPrintFVase - targetFVase) * ratio;
+
                             if (/[Ff][+-]?[0-9.]+/.test(outLine)) {
                                 outLine = outLine.replace(/([Ff])([+-]?[0-9.]+)/, `F${newF.toFixed(0)}`);
                             } else {
@@ -1513,11 +1519,27 @@
                                     outLine += ` F${newF.toFixed(0)}`;
                                 }
                             }
-                            forceRestoreF = origF;
+                            // Tag this so we can explicitly restore the speed later
+                            forceRestoreF = currentPrintFVase;
+                            
+                        } else if (forceRestoreF !== null) {
+                            // We just exited the slowdown zone, immediately write a command to restore the original feedrate
+                            if (!/[Ff][+-]?[0-9.]+/.test(outLine)) {
+                                let commentIdx = outLine.indexOf(';');
+                                if (commentIdx !== -1) {
+                                    outLine = outLine.slice(0, commentIdx) + ` F${forceRestoreF.toFixed(0)} ` + outLine.slice(commentIdx);
+                                } else {
+                                    outLine += ` F${forceRestoreF.toFixed(0)}`;
+                                }
+                            }
+                            // Un-queue the restore command ONLY if we've officially exited the layer zone
+                            if (zDist > zoneAfterZ + 0.001) {
+                                forceRestoreF = null; 
+                            }
                         }
-                        
-                        outputLines.push(outLine);
                     }
+                    
+                    outputLines.push(outLine);
                 }
 
                 splicedGcodeText = outputLines.join('\n');
@@ -1558,6 +1580,8 @@
         function buildPreviewData(gcode, transitionZ) {
             parsedSegments = [];
             maxRenderZ = 0;
+            window.renderLayerHeights = []; // Clear old rendered heights
+            const zSet = new Set(); // Store all rendered layer heights
             
             window.previewMaxes = { f: 1, flow: 0.1, width: 0.1, height: 0.1, temp: 1 };
             window.previewMins = { temp: 999 };
@@ -1617,6 +1641,9 @@
                     // FIX: Only update maxRenderZ for actual extrusion moves, completely ignoring end-gcode bed drops!
                     if (currentZ > maxRenderZ) maxRenderZ = currentZ;
 
+                    // Add cleanly rounded physical layer heights to the visualizer snap set
+                    zSet.add(Math.round(currentZ * 100) / 100);
+
                     // FIX: Only track max feedrate for actual extrusion moves!
                     // This stops lightning-fast travel moves (e.g., F30000) from ruining the color scale!
                     if (currentF > window.previewMaxes.f) window.previewMaxes.f = currentF;
@@ -1664,12 +1691,20 @@
 
             if (window.previewMins.temp === 999) window.previewMins.temp = 0;
 
-            // Setup Slider
-            const finalMaxZ = Math.ceil(maxRenderZ);
+            window.renderLayerHeights = Array.from(zSet).sort((a, b) => a - b);
+
+            // Setup Slider Max Boundary explicitly to the highest physical layer
+            let finalMaxZ = 0;
+            if (window.renderLayerHeights.length > 0) {
+                finalMaxZ = window.renderLayerHeights[window.renderLayerHeights.length - 1];
+            } else {
+                finalMaxZ = Math.ceil(maxRenderZ);
+            }
+            
             zSlider.max = finalMaxZ;
             zSlider.step = 0.01;
             zSlider.value = finalMaxZ;
-            zSliderValue.textContent = `${finalMaxZ}mm`;
+            zSliderValue.textContent = `${finalMaxZ.toFixed(2)}mm`;
             
             updateSliderIndicator();
             renderGeometry();
@@ -1810,11 +1845,6 @@
                     legendMin.textContent = "Cool"; legendMax.textContent = "Hot";
                 }
             }
-            renderGeometry();
-        });
-
-        zSlider.addEventListener('input', () => {
-            zSliderValue.textContent = `${parseFloat(zSlider.value).toFixed(2)}mm`;
             renderGeometry();
         });
 
