@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KintsugiVase Splicer by schwaaaat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 h-screen flex flex-col font-sans overflow-hidden">
+
+    <div id="toast" class="fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 border-l-4 border-amber-500 text-white px-5 py-4 rounded shadow-2xl">
+        <svg id="toastIcon" class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div id="toastMessage" class="text-sm font-medium">Notification message here</div>
+    </div>
+
+    <header class="bg-gray-800 p-3 md:p-4 shadow-md flex justify-between items-center z-10 border-b border-gray-700 relative">
+        <div class="flex items-center gap-3 md:gap-4">
+            <svg id="mainLogo" class="w-8 h-8 md:w-10 md:h-10 drop-shadow-md cursor-pointer flex-shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 35 15 C 45 15, 45 30, 30 50 C 26 55.3, 23.3 60.5, 23 63" stroke="#f97316" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <path d="M 65 15 C 55 15, 55 30, 70 50 C 74 55.3, 76.7 60.5, 77 63" stroke="#f97316" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <path d="M 23 63 C 20 80, 35 90, 40 90 L 60 90 C 65 90, 80 80, 77 63 Z" fill="#3b82f6"/>
+                <path d="M 18 60 L 35 66 L 50 56 L 68 64 L 82 58" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M 50 56 L 54 74" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <circle cx="55" cy="78" r="2" fill="#fbbf24" />
+            </svg>
+            <div>
+                <h1 class="text-lg md:text-xl font-bold text-white tracking-wide leading-tight">Kintsugi<span class="text-amber-400">Vase</span> Splicer</h1>
+                <p class="text-[10px] md:text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+                    <span class="hidden md:inline">Universal Toolpath Editor</span> 
+                    <button id="guideBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-2 py-0.5 rounded text-[9px] md:text-[10px] uppercase tracking-wider font-bold transition-colors shadow">Setup Guide <span class="hidden sm:inline">& Slicer Settings</span></button>
+                </p>
+            </div>
+        </div>
+        <div id="downloadContainer" class="hidden flex gap-2">
+            <button id="downloadBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded text-xs md:text-sm font-semibold transition-colors shadow-lg">
+                Save <span class="hidden md:inline">.gcode</span>
+            </button>
+            <button id="download3mfBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded text-xs md:text-sm font-semibold transition-colors shadow-lg" title="Uses original file as template for perfect LAN import">
+                Save <span class="hidden md:inline">.gcode</span>.3mf
+            </button>
+        </div>
+    </header>
+
+    <div id="guideModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900">
+                <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    Slicer Setup & Kintsugi Guide
+                </h2>
+                <button id="closeGuideBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-4 md:p-6 overflow-y-auto space-y-6 md:space-y-8 text-sm text-gray-300 custom-scrollbar">
+                
+                <section>
+                    <p class="text-sm md:text-base text-gray-200"><strong>KintsugiVase</strong> allows you to "splice" two G-codes together. Print a dense, heavy, perfectly solid base (for stability, complex internal geometry like threads, or water-tightness) and instantly transition into a seamless, fast, single-wall spiral vase for the upper aesthetics.</p>
+                </section>
+
+                <section class="bg-gray-900 border border-amber-600/50 rounded-lg p-4 md:p-5">
+                    <h3 class="text-base md:text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Mandatory Slicer Settings
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                        <div>
+                            <h4 class="font-bold text-white mb-2 text-sm md:text-base">1. Enable "Verbose G-code"</h4>
+                            <p class="mb-2 text-gray-400 text-xs md:text-sm">This tool requires exact Z-height tracking. Without Verbose G-code, it cannot read the layers.</p>
+                            <ul class="list-disc pl-5 mb-4 space-y-1 text-gray-400 text-xs md:text-sm">
+                                <li><strong>OrcaSlicer / Bambu Studio:</strong> Go to <code>Others tab -> G-code output -> Verbose G-code</code> (Check the box).</li>
+                                <li><strong>PrusaSlicer:</strong> Go to <code>Print Settings -> Output options -> Verbose G-code</code>.</li>
+                            </ul>
+                            <img src="images/verbose-gcode-setting.png" alt="Verbose G-code Checkbox" class="w-full rounded border border-gray-600 shadow-md mt-2">
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-white mb-2 text-sm md:text-base">2. Aligned Seams & Concentric Tops</h4>
+                            <ul class="list-disc pl-5 mb-4 space-y-2 text-gray-400 text-xs md:text-sm">
+                                <li><strong>Seam Position:</strong> Set to <em>Aligned</em> or <em>Back</em> for both files. This prevents the nozzle from dragging across the print during the transition.</li>
+                                <li><strong>Top Surface Pattern:</strong> Set the Base file's Top Surface Pattern to <em>Concentric</em>. This forces the solid infill to perfectly trace the outer wall, eliminating any tiny gaps when the vase wall starts printing on top of it.</li>
+                            </ul>
+                             <img src="images/concentric-top.png" alt="Concentric Top Pattern" class="w-full rounded border border-gray-600 shadow-md mt-2">
+                        </div>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <section class="bg-gray-800 p-4 rounded border border-gray-700">
+                        <h3 class="text-sm md:text-md font-bold text-blue-400 mb-2">Ideal Project Types</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-xs md:text-sm">
+                            <li><strong>Threaded & Complex Fittings:</strong> Print a 100% solid base with fully functional, complex internal geometry (like threaded pipe fittings) that transitions seamlessly into a lightweight single-wall structure above.</li>
+                            <li><strong>Planters:</strong> Solid, water-tight bases with infill to hold heavy soil.</li>
+                        </ul>
+                    </section>
+
+                    <section class="bg-gray-800 p-4 rounded border border-gray-700">
+                        <h3 class="text-sm md:text-md font-bold text-purple-400 mb-2">CAD Design Tips</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-xs md:text-sm">
+                            <li><strong>Continuous Loops:</strong> At your chosen Z-transition height, your CAD model's outer profile <em>must</em> be a single continuous shape (no holes or separated islands).</li>
+                            <li><strong>Avoid Sharp Overhangs:</strong> Transitioning from solid infill directly into a steep outward overhang in single-wall mode can cause curling.</li>
+                        </ul>
+                    </section>
+                </div>
+
+                <section>
+                    <h3 class="text-base md:text-lg font-bold text-amber-400 mb-2 border-b border-gray-700 pb-1">Using the App</h3>
+                    <ul class="list-disc pl-5 space-y-2 text-xs md:text-sm">
+                        <li><strong>Identify the Transition:</strong> Export your standard Base file. Upload it here. The app will scan it. Use the Z-slider to find the exact height where you want the vase to begin.</li>
+                        <li><strong>Export the Vase:</strong> Go back to your slicer, turn on "Spiral Vase Mode", slice, and export. <em>Do not move the model on the build plate between exports!</em>
+                            <img src="images/smooth-spiral.png" alt="Smooth Spiral Setting" class="w-full max-w-sm mt-3 rounded border border-gray-600 shadow-md">
+                        </li>
+                        <li><strong>Wall Width Adjustment:</strong> Single-wall prints often need thicker walls for strength. Use the explicit Target Vase Width input to digitally inflate your vase wall size automatically!</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div id="disclaimerModal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-gray-800 border-2 border-red-600/50 rounded-lg shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+            <div class="p-3 md:p-4 border-b border-gray-700 bg-gray-900 flex items-center gap-3">
+                <svg class="w-6 h-6 md:w-7 md:h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <h2 class="text-lg md:text-xl font-bold text-white">Warning & Disclaimer</h2>
+            </div>
+            <div class="p-4 md:p-6 space-y-4 text-gray-300 text-xs md:text-sm">
+                <p>Generating and executing custom, spliced G-code can result in unexpected toolhead movements.</p>
+                <p><strong>Use this tool entirely at your own risk.</strong> The creator assumes absolutely no responsibility for any damage to your 3D printer, failed prints, wasted filament, or any other negative outcomes resulting from the use of this software.</p>
+                <p>Please refer to the Setup Guide and <em>always</em> closely supervise your 3D printer during the transition layers when testing new files.</p>
+            </div>
+            <div class="p-3 md:p-4 border-t border-gray-700 bg-gray-900 flex justify-end">
+                <button id="acceptDisclaimerBtn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded transition-colors text-sm md:text-base">
+                    I Understand and Accept
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <aside class="w-full md:w-[360px] h-[55vh] md:h-full bg-gray-800 border-t md:border-t-0 md:border-r border-gray-700 overflow-y-auto z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.2)] md:shadow-lg relative custom-scrollbar flex-shrink-0 order-2 md:order-1">
+            <div class="p-4 md:p-5 flex flex-col gap-4">
+                <div class="bg-amber-900/30 border border-amber-500/50 p-2 md:p-3 rounded">
+                    <p class="text-[10px] md:text-xs text-amber-200 leading-tight">
+                        <strong>Tip:</strong> Export files as <b>.gcode.3mf</b> to preserve thumbnails for Bambu LAN printing.
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs md:text-sm font-medium text-gray-300 mb-1">1. Standard Base Print</label>
+                        <div id="dropBase" class="border-2 border-dashed border-gray-600 rounded-lg p-3 md:p-4 text-center hover:bg-gray-700 transition-colors cursor-pointer relative bg-gray-900/50">
+                            <input type="file" id="fileBase" accept=".gcode,.gcode.3mf,.3mf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select or drag Base file here"/>
+                            <div class="pointer-events-none flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <span id="labelBase" class="text-xs md:text-sm text-gray-300 font-medium truncate w-full px-2">Drop base file or click</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs md:text-sm font-medium text-gray-300 mb-1">2. Vase Mode Top Print</label>
+                        <div id="dropVase" class="border-2 border-dashed border-gray-600 rounded-lg p-3 md:p-4 text-center hover:bg-gray-700 transition-colors cursor-pointer relative bg-gray-900/50">
+                            <input type="file" id="fileVase" accept=".gcode,.gcode.3mf,.3mf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select or drag Vase file here"/>
+                            <div class="pointer-events-none flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <span id="labelVase" class="text-xs md:text-sm text-gray-300 font-medium truncate w-full px-2">Drop vase file or click</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-700 rounded-lg p-3">
+                    <div class="grid grid-cols-2 gap-3 mb-1">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Transition Height (Z mm)</label>
+                            <input type="number" id="transitionZ" value="25.0" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400 transition-colors" title="Use Up/Down arrows to snap perfectly to sliced layers">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Vase Flow Multiplier</label>
+                            <input type="number" id="flowMultiplier" value="1.0" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400 transition-colors" title="Global flow multiplier for the vase section (e.g. 1.05 for +5%)">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="text-[10px] text-gray-400 flex items-center justify-between">
+                            <span id="zHintText">Upload base file to scan layers.</span>
+                            <span id="zHintAction" class="text-amber-400 font-bold cursor-pointer hover:underline hidden"></span>
+                        </p>
+                    </div>
+
+                    <div class="border-t border-gray-700 pt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="useWallThickness" class="text-xs font-bold text-gray-300 cursor-pointer">Enable Wall Thickness Tuning</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useWallThickness" class="sr-only peer">
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <div id="wallThicknessControls" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-opacity">
+                            <div>
+                                <label class="block text-[10px] font-medium text-gray-400 mb-1">Vase Sliced Width</label>
+                                <input type="number" id="slicedWidth" value="0.42" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-amber-400 text-sm font-mono cursor-not-allowed" title="Automatically detected from your Vase G-code file" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-medium text-amber-400 mb-1">Target Vase Width</label>
+                                <input type="number" id="targetWidth" value="0.60" step="0.01" class="w-full bg-gray-800 border border-amber-500/50 rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-amber-400 font-bold" title="We will calculate the extra flow needed to inflate the wall to this exact size">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <details class="group bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
+                    <summary class="p-2 md:p-3 text-xs md:text-sm font-medium text-gray-300 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center select-none">
+                        Advanced Transition Tuning
+                        <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-3 bg-gray-800">
+                        
+                        <div class="flex items-center justify-between mb-1 border-b border-gray-700 pb-3">
+                            <label for="useSpeedTuning" class="text-xs font-bold text-gray-300 cursor-pointer">Enable Speed Tuning</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useSpeedTuning" class="sr-only peer">
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+
+                        <div id="speedTuningControls" class="space-y-3 opacity-50 pointer-events-none transition-opacity">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Feedrate for the transition layers">Slow Speed (mm/s)</label>
+                                    <input type="number" id="transSpeed" value="20" step="1" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="How the speed changes: Instant step or smooth ramp">Ramp Mode</label>
+                                    <select id="rampMode" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                        <option value="step">Step (Instant)</option>
+                                        <option value="ramp" selected>Smooth Ramp</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Number of physical layers to modify BEFORE transition">Layers Before Trans.</label>
+                                    <input type="number" id="transLayersBefore" value="0" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Number of physical layers to modify AFTER transition">Layers After Trans.</label>
+                                    <input type="number" id="transLayersAfter" value="0" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 border-t border-gray-700 pt-3 mt-1">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Leave blank to use defaults from the Vase file">Trans. Temp (°C)</label>
+                                <input type="number" id="transTemp" placeholder="Auto" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Fan speed override (0-255). Leave blank for Auto.">Trans. Fan (0-255)</label>
+                                <input type="number" id="transFan" placeholder="Auto" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="group bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
+                    <summary class="p-2 md:p-3 text-xs md:text-sm font-medium text-gray-300 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center select-none">
+                        Printer & Material Settings
+                        <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-3 bg-gray-800">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-xs font-medium text-gray-400 mb-1">Bed X (mm)</label>
+                                <input type="number" id="bedX" value="256" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-xs font-medium text-gray-400 mb-1">Bed Y (mm)</label>
+                                <input type="number" id="bedY" value="256" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] md:text-xs font-medium text-gray-400 mb-1">Material Density (g/cm³)</label>
+                            <input type="number" id="matDensity" value="1.24" step="0.01" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400" title="PLA: ~1.24, PETG: ~1.26, ABS: ~1.04">
+                            <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">PLA: ~1.24 | PETG: ~1.26 | ABS: ~1.04</p>
+                        </div>
+                    </div>
+                </details>
+
+                <button id="processBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 md:py-3 px-4 rounded transition-colors shadow-lg mt-1 md:mt-2 text-sm md:text-base">
+                    Splice & Generate Preview
+                </button>
+
+                <div id="statsPanel" class="hidden mt-1 md:mt-2 bg-gray-900 border border-gray-700 rounded p-3 md:p-4">
+                    <h3 class="text-xs md:text-sm font-bold text-gray-300 border-b border-gray-700 pb-2 mb-2">Estimated Output Stats</h3>
+                    <div class="flex justify-between text-xs md:text-sm mb-1">
+                        <span class="text-gray-500">Print Time:</span>
+                        <span id="statTime" class="text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between text-xs md:text-sm mb-1">
+                        <span class="text-gray-500">Filament Weight:</span>
+                        <span id="statWeight" class="text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between text-xs md:text-sm">
+                        <span class="text-gray-500">Total Layers:</span>
+                        <span id="statLayers" class="text-white font-mono">--</span>
+                    </div>
+                </div>
+
+                <div id="statusArea" class="mt-1 md:mt-2 p-2 md:p-3 rounded bg-gray-900 border border-gray-700 text-[10px] md:text-xs font-mono text-gray-400 hidden whitespace-pre-wrap break-words">
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col relative bg-black h-[45vh] md:h-full order-1 md:order-2 z-0">
+            
+            <div class="absolute top-2 right-2 md:top-4 md:right-4 z-10 flex gap-2">
+                <button id="homeViewBtn" class="bg-gray-800/80 hover:bg-gray-700 backdrop-blur border border-gray-600 text-white p-2 rounded shadow-lg transition-colors" title="Reset Default View">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </button>
+                <div class="relative group">
+                    <button class="bg-gray-800/80 hover:bg-gray-700 backdrop-blur border border-gray-600 text-gray-300 p-2 rounded shadow-lg transition-colors" title="Camera Controls">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <div class="absolute right-0 top-full pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                        <div class="bg-gray-800 border border-gray-600 rounded shadow-xl text-xs text-gray-300 p-3">
+                            <p class="font-bold text-white border-b border-gray-600 pb-1 mb-2">Camera Controls</p>
+                            <ul class="space-y-1.5 mb-3">
+                                <li><b class="text-amber-400">Left Click:</b> Rotate</li>
+                                <li><b class="text-amber-400">Right/Mid Click:</b> Pan</li>
+                                <li><b class="text-amber-400">Scroll Wheel:</b> Zoom</li>
+                            </ul>
+                            <div class="border-t border-gray-600 pt-2">
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Zoom Speed</label>
+                                <div class="flex gap-1" id="zoomSpeedControls">
+                                    <button data-speed="0.1" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded py-1 text-[10px] transition-colors border border-transparent">Slow</button>
+                                    <button data-speed="0.35" class="flex-1 bg-amber-600 text-white rounded py-1 text-[10px] transition-colors border border-amber-500 font-bold shadow-inner">Med</button>
+                                    <button data-speed="0.8" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded py-1 text-[10px] transition-colors border border-transparent">Fast</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute top-2 left-2 md:top-4 md:left-4 z-10 bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex flex-col gap-2 min-w-[140px] md:min-w-[200px]">
+                <div>
+                    <label class="block text-[9px] md:text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Color Mode</label>
+                    <select id="colorModeSelect" class="w-full bg-gray-900 border border-gray-600 rounded px-1.5 py-1 text-xs md:text-sm text-white focus:outline-none focus:border-amber-400">
+                        <option value="type">Base vs. Vase</option>
+                        <option value="speed">Feedrate (Speed)</option>
+                        <option value="flow">Flow Rate</option>
+                        <option value="width">Line Width</option>
+                        <option value="height">Layer Height</option>
+                        <option value="temp">Temperature</option>
+                    </select>
+                </div>
+
+                <div id="legendType" class="text-[10px] md:text-xs text-gray-400">
+                    <div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-blue-500 inline-block"></span> Base Infill</div>
+                    <div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-orange-500 inline-block"></span> Vase Mode</div>
+                </div>
+
+                <div id="legendGradient" class="text-[10px] md:text-xs text-gray-400 hidden flex-col gap-1">
+                    <div class="flex justify-between"><span id="legendMin">Slow</span><span id="legendMax">Fast</span></div>
+                    <div class="h-1.5 md:h-2 rounded w-full bg-gradient-to-r from-blue-600 via-green-500 to-red-600"></div>
+                    <div id="currentMetricValue" class="text-center mt-1 font-mono text-amber-400 font-bold tracking-wide text-[10px] md:text-xs">--</div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-2 left-2 right-2 md:bottom-6 md:left-6 md:right-6 z-10 bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex items-center gap-2 md:gap-4">
+                <span class="text-xs md:text-sm font-bold text-gray-300 w-12 md:w-16">Z-Slice:</span>
+                
+                <div class="flex-1 relative flex items-center h-5 md:h-6">
+                    <div class="absolute inset-x-0 h-1.5 md:h-2 bg-gray-600 rounded-lg pointer-events-none"></div>
+                    <div id="transitionIndicator" class="absolute h-4 w-1 md:h-5 md:w-1 bg-amber-400 rounded pointer-events-none hidden z-10 shadow-[0_0_8px_rgba(251,191,36,0.8)]" style="left: 50%; transform: translateX(-50%);"></div>
+                    <input type="range" id="zSlider" min="0" max="100" value="100" class="absolute inset-0 w-full h-full appearance-none cursor-pointer z-20 bg-transparent focus:outline-none custom-range-slider">
+                </div>
+
+                <span id="zSliderValue" class="text-xs md:text-sm font-mono text-white w-12 md:w-16 text-right">Max</span>
+                
+                <button id="setTransitionBtn" class="bg-gray-700 hover:bg-amber-600 text-white border border-gray-600 hover:border-amber-500 text-[10px] md:text-xs font-bold py-1 px-2 md:py-1.5 md:px-3 rounded transition-all whitespace-nowrap" title="Set transition height to current Z-slice">
+                    Set<span class="hidden md:inline"> Transition</span>
+                </button>
+            </div>
+
+            <div id="loadingOverlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden z-20">
+                <div class="text-white text-lg md:text-xl font-semibold flex flex-col items-center gap-3 md:gap-4">
+                    <svg class="animate-spin h-8 w-8 md:h-10 md:w-10 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span id="loadingText">Processing G-Code...</span>
+                </div>
+            </div>
+            
+            <div id="canvas-container" class="flex-1 w-full h-full"></div>
+        </div>
+
+    </main>
+
+    <style>
+        /* Custom scrollbar for the modal and sidebar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .md\:custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(75, 85, 99, 1); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(107, 114, 128, 1); }
+        
+        /* Highlight dropzone when dragging over */
+        .drag-over { border-color: #fbbf24 !important; background-color: rgba(31, 41, 55, 0.9) !important; }
+
+        /* Custom styling for the range slider thumb so it works with our track */
+        .custom-range-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #e5e7eb;
+            border: 2px solid #374151;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 30;
+        }
+        .custom-range-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #e5e7eb;
+            border: 2px solid #374151;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 30;
+        }
+        
+        /* Adjust slider thumb for mobile */
+        @media (max-width: 768px) {
+            .custom-range-slider::-webkit-slider-thumb { width: 20px; height: 20px; }
+            .custom-range-slider::-moz-range-thumb { width: 20px; height: 20px; }
+        }
+    </style>
+
+    <script>
+        // --- Custom Toast Notification ---
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+            
+            msgEl.textContent = message;
+            
+            // Reset classes
+            toast.className = "fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 px-5 py-4 rounded shadow-2xl border-l-4";
+            
+            if (type === 'error') {
+                toast.classList.add('border-red-500');
+                iconEl.className = "w-6 h-6 text-red-500";
+                iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+            } else if (type === 'success') {
+                toast.classList.add('border-green-500');
+                iconEl.className = "w-6 h-6 text-green-500";
+                iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+            } else {
+                toast.classList.add('border-amber-500');
+                iconEl.className = "w-6 h-6 text-amber-500";
+                iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+            }
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            }, 10);
+
+            // Animate out after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 5000);
+        }
+
+        // --- Initialization & Local Storage ---
+        const flowInput = document.getElementById('flowMultiplier');
+        
+        // Wall Thickness Tuning Inputs
+        const useWallThickness = document.getElementById('useWallThickness');
+        const wallThicknessControls = document.getElementById('wallThicknessControls');
+        const slicedWidthInput = document.getElementById('slicedWidth');
+        const targetWidthInput = document.getElementById('targetWidth');
+        
+        const bedXInput = document.getElementById('bedX');
+        const bedYInput = document.getElementById('bedY');
+        const matDensityInput = document.getElementById('matDensity');
+        
+        // Advanced Tuning Inputs
+        const useSpeedTuning = document.getElementById('useSpeedTuning');
+        const speedTuningControls = document.getElementById('speedTuningControls');
+        const transSpeedInput = document.getElementById('transSpeed');
+        const rampModeInput = document.getElementById('rampMode');
+        const transLayersBefore = document.getElementById('transLayersBefore');
+        const transLayersAfter = document.getElementById('transLayersAfter');
+        const transTempInput = document.getElementById('transTemp');
+        const transFanInput = document.getElementById('transFan');
+
+        if (localStorage.getItem('kintsugi_flow')) flowInput.value = localStorage.getItem('kintsugi_flow');
+        
+        // Force Wall Thickness tuning off by default to prevent accidental over-extrusion on new sessions
+        useWallThickness.checked = false;
+        wallThicknessControls.classList.add('opacity-50', 'pointer-events-none');
+        localStorage.removeItem('kintsugi_useWallThickness'); // Clear any old cached data
+        
+        // REMOVED: Do NOT pull slicedWidth from localStorage. Always wait for fresh detection.
+        if (localStorage.getItem('kintsugi_targetWidth')) targetWidthInput.value = localStorage.getItem('kintsugi_targetWidth');
+        
+        if (localStorage.getItem('kintsugi_bedX')) bedXInput.value = localStorage.getItem('kintsugi_bedX');
+        if (localStorage.getItem('kintsugi_bedY')) bedYInput.value = localStorage.getItem('kintsugi_bedY');
+        if (localStorage.getItem('kintsugi_density')) matDensityInput.value = localStorage.getItem('kintsugi_density');
+        
+        if (localStorage.getItem('kintsugi_useSpeedTuning') === 'true') {
+            useSpeedTuning.checked = true;
+            speedTuningControls.classList.remove('opacity-50', 'pointer-events-none');
+        }
+        if (localStorage.getItem('kintsugi_transSpeed')) transSpeedInput.value = localStorage.getItem('kintsugi_transSpeed');
+        if (localStorage.getItem('kintsugi_rampMode')) rampModeInput.value = localStorage.getItem('kintsugi_rampMode');
+        if (localStorage.getItem('kintsugi_transLayersBefore')) transLayersBefore.value = localStorage.getItem('kintsugi_transLayersBefore');
+        if (localStorage.getItem('kintsugi_transLayersAfter')) transLayersAfter.value = localStorage.getItem('kintsugi_transLayersAfter');
+        if (localStorage.getItem('kintsugi_transTemp')) transTempInput.value = localStorage.getItem('kintsugi_transTemp');
+        if (localStorage.getItem('kintsugi_transFan')) transFanInput.value = localStorage.getItem('kintsugi_transFan');
+
+        useSpeedTuning.addEventListener('change', () => {
+            if (useSpeedTuning.checked) {
+                speedTuningControls.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                speedTuningControls.classList.add('opacity-50', 'pointer-events-none');
+            }
+            saveSettings();
+        });
+
+        useWallThickness.addEventListener('change', () => {
+            if (useWallThickness.checked) {
+                wallThicknessControls.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                wallThicknessControls.classList.add('opacity-50', 'pointer-events-none');
+            }
+            saveSettings();
+        });
+
+        const saveSettings = () => {
+            localStorage.setItem('kintsugi_flow', flowInput.value);
+            // Wall thickness toggle is deliberately not saved here so it always defaults to off
+            
+            // REMOVED: Do NOT save slicedWidth to localStorage to prevent UX confusion
+            localStorage.setItem('kintsugi_targetWidth', targetWidthInput.value);
+            
+            localStorage.setItem('kintsugi_bedX', bedXInput.value);
+            localStorage.setItem('kintsugi_bedY', bedYInput.value);
+            localStorage.setItem('kintsugi_density', matDensityInput.value);
+            
+            localStorage.setItem('kintsugi_useSpeedTuning', useSpeedTuning.checked);
+            localStorage.setItem('kintsugi_transSpeed', transSpeedInput.value);
+            localStorage.setItem('kintsugi_rampMode', rampModeInput.value);
+            localStorage.setItem('kintsugi_transLayersBefore', transLayersBefore.value);
+            localStorage.setItem('kintsugi_transLayersAfter', transLayersAfter.value);
+            localStorage.setItem('kintsugi_transTemp', transTempInput.value);
+            localStorage.setItem('kintsugi_transFan', transFanInput.value);
+            updateGrid();
+        };
+
+        flowInput.addEventListener('change', saveSettings);
+        targetWidthInput.addEventListener('change', saveSettings);
+        
+        bedXInput.addEventListener('change', saveSettings);
+        bedYInput.addEventListener('change', saveSettings);
+        matDensityInput.addEventListener('change', saveSettings);
+        
+        transSpeedInput.addEventListener('change', saveSettings);
+        rampModeInput.addEventListener('change', saveSettings);
+        transLayersBefore.addEventListener('change', saveSettings);
+        transLayersAfter.addEventListener('change', saveSettings);
+        transTempInput.addEventListener('change', saveSettings);
+        transFanInput.addEventListener('change', saveSettings);
+
+        // DOM Elements
+        const mainLogo = document.getElementById('mainLogo');
+        const guideBtn = document.getElementById('guideBtn');
+        const guideModal = document.getElementById('guideModal');
+        const closeGuideBtn = document.getElementById('closeGuideBtn');
+        
+        const fileBaseInput = document.getElementById('fileBase');
+        const fileVaseInput = document.getElementById('fileVase');
+        const labelBase = document.getElementById('labelBase');
+        const labelVase = document.getElementById('labelVase');
+        const dropBase = document.getElementById('dropBase');
+        const dropVase = document.getElementById('dropVase');
+
+        const transitionZInput = document.getElementById('transitionZ');
+        const transitionIndicator = document.getElementById('transitionIndicator');
+        const setTransitionBtn = document.getElementById('setTransitionBtn');
+        const homeViewBtn = document.getElementById('homeViewBtn');
+        
+        const zHintText = document.getElementById('zHintText');
+        const zHintAction = document.getElementById('zHintAction');
+        const processBtn = document.getElementById('processBtn');
+        const downloadContainer = document.getElementById('downloadContainer');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const download3mfBtn = document.getElementById('download3mfBtn');
+        
+        const statusArea = document.getElementById('statusArea');
+        const statsPanel = document.getElementById('statsPanel');
+        const statTime = document.getElementById('statTime');
+        const statWeight = document.getElementById('statWeight');
+        const statLayers = document.getElementById('statLayers');
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const container = document.getElementById('canvas-container');
+        
+        const colorModeSelect = document.getElementById('colorModeSelect');
+        const legendType = document.getElementById('legendType');
+        const legendGradient = document.getElementById('legendGradient');
+        const legendMin = document.getElementById('legendMin');
+        const legendMax = document.getElementById('legendMax');
+        const zSlider = document.getElementById('zSlider');
+        const zSliderValue = document.getElementById('zSliderValue');
+        const currentMetricValueEl = document.getElementById('currentMetricValue');
+
+        // State
+        let splicedGcodeText = "";
+        let template3mfFile = null;
+        let templateGcodePath = null;
+        let parsedSegments = []; 
+        let maxRenderZ = 0;
+
+        // Layer Snapping State
+        let baseLayerHeights = [];
+        let currentSnappedZ = null;
+
+        // --- Disclaimer Logic ---
+        const disclaimerModal = document.getElementById('disclaimerModal');
+        const acceptDisclaimerBtn = document.getElementById('acceptDisclaimerBtn');
+
+        if (!localStorage.getItem('kintsugi_disclaimer_accepted')) {
+            disclaimerModal.classList.remove('hidden');
+        }
+
+        acceptDisclaimerBtn.addEventListener('click', () => {
+            localStorage.setItem('kintsugi_disclaimer_accepted', 'true');
+            disclaimerModal.classList.add('hidden');
+        });
+
+      // Literally the most important feature. If you're reading this try clicking the logo 5 times lol.    
+        const cdBase64 = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iMTIzNi4wMDAwMDBwdCIgaGVpZ2h0PSIxNTAwLjAwMDAwMHB0IiB2aWV3Qm94PSIwIDAgMTIzNi4wMDAwMDAgMTUwMC4wMDAwMDAiCiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0Ij4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsMTUwMC4wMDAwMDApIHNjYWxlKDAuMTAwMDAwLC0wLjEwMDAwMCkiCmZpbGw9IiMwMDAwMDAiIHN0cm9rZT0ibm9uZSI+CjxwYXRoIGQ9Ik01OTEwIDE0MzM0IGMtMjU3IC0yMSAtNDkxIC03OSAtNzI4IC0xODEgLTU3IC0yNCAtNDE5IC0yMDIgLTgwNQotMzk1IGwtNzAyIC0zNTIgLTE2NSAzIGMtMTEzIDIgLTE5NSAtMiAtMjYwIC0xMyAtNDQ0IC03MiAtNzAwIC0zMzkgLTc2MQotNzk0IC0xOCAtMTMxIC02IC0zODUgMjYgLTU3MiAyNiAtMTUxIDI2IC0xNTcgMTAgLTIxNSAtMjAgLTc0IC0xMDIgLTI0NwotMTg1IC0zOTAgLTgzIC0xNDUgLTIwOCAtMzQyIC0yMzAgLTM2MyAtOSAtOSAtMjE0IC00NDUgLTQ1MyAtOTY5IGwtNDM2IC05NTIKLTExIC01MDggYy01IC0yNzkgLTEwIC03NTEgLTEwIC0xMDQ4IDAgLTEwNDIgMzMgLTE1MDEgMTM1IC0xODgwIDE5IC03MSA1MQotMTg4IDcwIC0yNjAgMTkgLTcxIDQ4IC0xOTUgNjUgLTI3NSAzNCAtMTY0IDY2IC0yNjYgMTIwIC0zOTAgMTMyIC0zMDAgMzg5Ci02MDMgNzQ5IC04ODAgNDYgLTM2IDk1IC03NCAxMDkgLTg2IGwyNSAtMjEgLTkzIC0xNDkgYy0xMzUgLTIxNSAtMjgxIC00MzMKLTM3NSAtNTU5IC04NyAtMTE2IC0xOTMgLTIyNSAtMjE5IC0yMjUgLTkgMCAtMjUgMTggLTM2IDQwIC00NyA5MyAtMjA5IDI2NgotMzkxIDQyMCAtMjE5IDE4NCAtMzc4IDI3NSAtNDgyIDI3NSAtNzIgMCAtODggLTE2IC0xMTYgLTExMyAtNjYgLTIyNiAtNTUKLTM3NiA1OSAtODQyIDc5IC0zMjEgMjAzIC01NzkgNDExIC04NTcgOTMgLTEyMyAyNTkgLTI5MCAzMjEgLTMyMyBsNDggLTI1IDM2CjIwIGMxMzcgNzMgNzM3IDY3NCAxNTE5IDE1MTkgbDIyNyAyNDYgNDIgLTI2IGMzMjAgLTE5NiA5NDUgLTQwNyAxNTg4IC01MzUKMTA5IC0yMSAyMDEgLTM5IDIwNCAtMzkgMTkgMCAtMTI1IC0yMTkgLTE4MiAtMjc3IC01MSAtNTEgLTcxIC01MyAtMTcwIC0xOQotMzggMTIgLTEyMSAzNiAtMTg0IDUyIC05OCAyNCAtMTM2IDI4IC0yNTYgMjggLTEzNyAxIC0xNDIgMCAtMTk5IC0yOSAtODIKLTQyIC0xMTYgLTk4IC0xMjIgLTE5OCAtNiAtODEgMzkgLTM2MiA4MiAtNTI2IDkyIC0zNDYgMzg3IC04MzMgNjg1IC0xMTMyCjEyMSAtMTIyIDE4OCAtMTYxIDI3MyAtMTYyIDEwMCAtMSAxNjEgNDggMzUxIDI4MiAyMTYgMjY1IDMxOCA0NjIgNjUxIDEyNTMKNzUgMTc4IDE2OCAzODggMjA2IDQ2NyA1NyAxMjAgNzIgMTQyIDg2IDEzNiA0NyAtMTcgNDA2IC0xMDkgNTQ4IC0xNDAgMjQ3Ci01MiAzNzMgLTY4IDU0MCAtNjggMTg3IC0xIDI0MSAxMiA0MzUgMTAzIDgwIDM3IDE3MiA3NiAyMDUgODUgMjI0IDY1IDY0OQozNjkgMTIzNSA4ODQgMTU1IDEzNiAxNjUgMTQ3IDIxMCAyMjMgMjQgNDAgNDQgNzUgNDYgNzcgMSAyIDY1IC0xMSAxNDEgLTI3CjI0OSAtNTYgMzQ4IC02NyA1ODMgLTY2IDIwMCAwIDIyMiAyIDMxMyAyNiAxNzYgNDggMjg1IDEyNiAzNDcgMjQ4IDEwMyAyMDQKMTAwIDQ2MCAtOCA2MjUgLTQyIDY0IC0xMzYgMTU5IC0xODkgMTkwIC0xOCAxMSAtMzMgMjIgLTMzIDI2IDAgMyAyMSAxNCA0OAoyNCAyNiA5IDkwIDQwIDE0MiA2NyAyNzMgMTQ0IDQxNSAyODYgNDEzIDQxMyAwIDYyIC0xOSAxMDAgLTc3IDE1NSAtNjMgNjAKLTc1IDY4IC0zMTcgMTkxIC0zMDggMTU3IC00MjcgMjQwIC0zNTggMjUxIDMwIDQgMTA2MiAxNTQ5IDExNDggMTcxOCAxNTQgMzAyCjE4MiA1NTEgODQgNzMyIC00MSA3NiAtMTM2IDE1NyAtMjUwIDIxNiAtMzQ5IDE3OSAtNTk0IDE2MSAtODk4IC02NSAtMTE2IC04NgotMzcwIC0zNDEgLTYwNiAtNjA4IC02MDYgLTY4NCAtOTE5IC0xMDM3IC05NjYgLTEwODkgbC01MyAtNjAgLTM3IDQ1IGMtMjM1CjI4MSAtNjI4IDQ2MSAtMTA5NiA1MDAgLTM0NyAyOSAtODM0IC00MCAtMTI1NyAtMTc2IC02MSAtMjAgLTExNCAtMzQgLTExNwotMzEgLTE0IDE0IDY4IDQ3MCAxMjggNzA4IDExNyA0NjkgMjMwIDc2OSA0NjQgMTIzOSAxNDEgMjgzIDIyMCA0NzQgMzAzIDcyOQoyNzUgODQ0IDQ0OCAxOTk5IDQyOSAyODYwIC04IDM0NyAtMzUgNTYzIC05MyA3NjAgLTUxIDE2OSAtODYgMjE0IC0zMjQgNDEyCi00NzAgMzkxIC04MjYgNTc4IC0xMjI4IDY0MiAtOTYgMTYgLTMwNSAyNyAtMzgyIDIweiBtNDIyIC00MDIgYzI5MiAtNzYgNTIzCi0yNDUgNzAxIC01MTMgMTgyIC0yNzUgMzQ5IC01OTMgNDEyIC03ODMgNjEgLTE4NiA3OCAtMzE2IDcyIC01NTYgLTEwIC0zNzQKLTg5IC03NTEgLTM2MyAtMTcyMCAtMTkwIC02NzIgLTMyNiAtMTA5NiAtNzYzIC0yMzgwIC0yMTkgLTY0NCAtMjEzIC02MTQKLTIwOCAtMTExNSAzIC0zOTYgNyAtNDQ1IDM5IC00ODggMTggLTI0IDExMCAtNDQgMjMyIC01MyBsMTA2IC03IDAgNjUgYzAgMzYKMyA5OSA2IDE0MSBsNyA3NiA3MSAzMCBjMzk3IDE2MyA5MzEgMjIxIDEzNDEgMTQ1IDI3NiAtNTIgNTgxIC0xODcgODE0IC0zNjIKbDc1IC01NSAtMTI3IC0xMjMgYy0xNzAgLTE2NSAtMTU3IC0xNTggLTI0MSAtMTM0IC0xNzQgNTAgLTMwNyA2NSAtNTY2IDY0Ci0yNzcgLTEgLTQxNiAtMTcgLTY2NSAtNzggLTEzNiAtMzQgLTM1MSAtMTAzIC00NDggLTE0NSBsLTQ4IC0yMSAyMCAtMzkgYzMyCi02MiAxMDQgLTExOCAxODMgLTE0MiA2OCAtMjEgNzYgLTIxIDM2MSAtMTAgNTg5IDI0IDk4NyAtMzQgMTMwMSAtMTkxIDM5NAotMTk2IDY1NCAtNTY1IDc0MyAtMTA1MyAyMyAtMTIzIDIzIC00MDIgMCAtNTA1IC05IC00MSAtMzYgLTExNSAtNjEgLTE2NSAtMjUKLTQ5IC00OCAtMTAyIC01MyAtMTE3IC05IC0yOSAtMTE3IC0xMjQgLTQxMyAtMzYxIC01ODkgLTQ3MyAtODY2IC02MzEgLTExNzYKLTY2OSAtMTIwIC0xNCAtMjc3IC0yIC02MzQgNTIgLTM5MSA1OCAtNTE4IDcyIC02OTUgNzMgLTE0MiAyIC0xNjUgMCAtMjAwCi0xOCAtMzAgLTE1IC0zOSAtMjUgLTM4IC00MiAzIC0yOCAtMTUyIC00OTggLTI1NyAtNzc4IC0yNjUgLTcwNyAtNDk0IC0xMTEzCi02NTMgLTExNTYgLTM2IC05IC00NyAtOCAtODUgMTAgLTE0NyA3MiAtMzExIDMyOSAtNDU4IDcyMSAtNTQgMTQzIC0xNjUgNDkxCi0xNTkgNDk4IDEgMSAzMSAtMTUgNjYgLTM2IDEyMyAtNzUgMzMzIC0xODUgMzc3IC0xOTkgMTA4IC0zMiAxOTMgLTMgMjg3IDk4CjU3IDYyIDExNSAxNTMgMjUzIDQwMSAzNCA2MiA5OCAxNjEgMTQxIDIyMCA5MCAxMjIgMTIxIDE4MyAxMjEgMjMzIDAgNzUgLTQ4CjEyNiAtMTcwIDE4NCAtMTE4IDU1IC0yNzkgOTkgLTY3NCAxODcgLTUzNSAxMTcgLTc0MCAxNzUgLTEwMjYgMjg3IC0zNDggMTM2Ci04MDIgMzk3IC0xMTY1IDY3MCAtMTE0IDg2IC0zNDggMzI0IC00NDEgNDQ3IC0zNTAgNDY3IC01NzYgMTA5NCAtNjc5IDE4ODUKLTM2IDI3NSAtNDcgNDUwIC01MiA4NTIgLTggNjE3IDI2IDExMTkgMTEyIDE2NDkgbDI1IDE1MiAyMjkgNTI4IGM1MDggMTE3MQo1NjEgMTI4OSA1NzMgMTI4NSA2MCAtMTcgMTQ1OSAtMjgyIDIyMDMgLTQxNiA1NzYgLTEwNCA4MjAgLTE0NCA5NjAgLTE1NiA2NgotNSAxNTYgLTE0IDIwMCAtMTkgMTU3IC0xOCAyNzkgLTIyIDM0MCAtMTEgNTcgMTAgMTA1IDM1IDExMiA1NyAyMyA2OSAtMTEzOQozOTQgLTI1MTMgNzAzIC00NjQgMTA1IC04MDIgMTczIC05NzcgMTk4IGwtMTIzIDE4IDk3IDI5MyBjNTQgMTYyIDk5IDI5NSAxMDEKMjk3IDIgMSA2NCAtMTMgMTM4IC0zMiAxNzQgLTQ0IDMwMSAtNjMgNDIyIC02MyBsOTggMCAtMzEgLTUwIGMtNjMgLTEwMyAtODcKLTIyNyAtNTUgLTI4OCA2NyAtMTI4IDI2NiAtMTc2IDczNiAtMTc2IDI1MyAwIDM2MyAxMyA0NzQgNTUgMTU3IDYwIDE2MyAxNTEKMjAgMjk1IC05MCA4OSAtMTYzIDEzNCAtMjIwIDEzNCAtNjIgMCAtNjggLTEzIC01NSAtMTE2IDYgLTQ4IDkgLTg5IDcgLTkxIC05Ci0xMCAtMTM5IC0yMyAtMjI2IC0yMyAtMTQyIDAgLTIxMCAyNyAtMjEwIDgyIDAgMzEgNzEgOTUgMTc5IDE2MiAxMDUgNjUgMzcxCjIwMCA1NDYgMjc2IDEzMCA1NyAxNjUgODMgMTk4IDE0NSA0MyA4NCAxOCAxNzUgLTYzIDIyOSBsLTM5IDI2IC0xNTEgLTY2CmMtODMgLTM3IC0xNTMgLTY1IC0xNTUgLTYyIC0yIDIgMSAyMiA3IDQ0IDcgMjEgMTIgODYgMTIgMTQ0IC0xIDIwNiAtOTMgNDY4Ci0yNjggNzYzIGwtNDQgNzUgMTU2IDc3IGM4NyA0MiAxNzEgODcgMTg3IDEwMCA0NCAzMyA5MDIgMzk5IDEwMDggNDI5IDc2IDIyCjE4MyA0NSAyODIgNjAgMTcgMiAxMDkgMyAyMDUgMSAxNTYgLTMgMTg4IC02IDI5MiAtMzN6IG0tMjI5MiAtODkyIGMzNiAtMzkKMTAxIC0xNzMgMTM0IC0yNzcgMzcgLTEyMCA0OSAtMjAxIDQ0IC0zMjEgLTQgLTEyNyAtMzAgLTE5NSAtOTggLTI2MSAtMTEwCi0xMDcgLTMzOSAtMTE5IC02MTUgLTM0IC03OCAyNCAtMTE1IDQzIC04NCA0MyAyNiAwIDE3OSA3OSAyNTYgMTMyIDE0MCA5NwoyNDYgMjM3IDI4NyAzNzkgMTcgNTkgMjMgMTUyIDE3IDI3NSAtNSAxMDIgOSAxMTcgNTkgNjR6IG03MjgwIC00NzI5IGMxMDkKLTQyIDIwOCAtMTQwIDI1MiAtMjUxIDE5IC00NyAyMiAtNzQgMjIgLTE4MCAwIC0xMDkgLTQgLTEzNiAtMjggLTIxMCAtMzcKLTExMiAtMTEwIC0yNTggLTE5MSAtMzc5IC05OSAtMTQ5IC0yNDYgLTMxOSAtNTQxIC02MjYgLTY2MyAtNjkyIC04NTkgLTg5OAotODYyIC05MDYgLTUgLTEzIDE5NSAtMTQxIDMyMSAtMjA1IDE3MyAtODggMzgwIC0xNTQgNDg4IC0xNTQgNDggMCAxNDAgLTQxCjE4NSAtODIgNTcgLTUyIDk0IC0xMjggOTQgLTE5MCAwIC04OSAtNDEgLTE0NyAtMTM1IC0xOTAgLTQ0IC0yMCAtNjUgLTIzCi0xODUgLTIyIC0xNDUgMCAtMjM0IDE3IC00MzUgODMgLTU0IDE4IC05MSAyNSAtOTQgMTkgLTIgLTUgODAgLTk0IDE4MiAtMTk2CjIzNiAtMjM4IDMwMiAtMzE2IDM3OSAtNDUyIDY2IC0xMTUgODYgLTI1NCA0OSAtMzM5IC0zNiAtODAgLTEyNiAtMTQwIC0yNDcKLTE2NSAtODEgLTE4IC0yNzkgLTE1IC0zOTQgNCAtMTk4IDM0IC0zNzYgMTA3IC0zNjcgMTUxIDIgMTEgMTUgNjcgMjggMTI1IDMxCjE0MiAzNCA0NTcgNSA1ODkgLTU0IDI0NyAtMTczIDQ5MSAtMzQyIDY5OCAtMTczIDIxMyAtNDQxIDQzNiAtNjIyIDUxNyAtMjMKMTAgLTQyIDIyIC00MiAyNiAwIDUgNDYgNDggMTAzIDk2IDQ0NyAzODUgOTgwIDg4NiAxMzE2IDEyMzcgMzQ4IDM2NCA1NDUgNTk5CjY5MiA4MjcgOTMgMTQ1IDEyOCAxODYgMTYyIDE5NCA0NSA5IDE1NCAtMiAyMDcgLTIzeiBtLTgzNDUgLTQ4NDMgbDE4MyAtMTEzCi03MiAtNzkgYy0yODYgLTMxOSAtODQ0IC04ODMgLTEwODYgLTEwOTkgLTI0NSAtMjE5IC00MTcgLTMzNyAtNDkxIC0zMzcgLTE2OAowIC00NTMgNjQ4IC01NjkgMTI5MyAtMzQgMTg5IC0yNSAyMzIgNDIgMjA0IDc2IC0zMyAxNzMgLTEyOSA2MDkgLTYwMiA5MSAtOTkKMTg1IC0xOTMgMjA4IC0yMDkgbDQyIC0zMCAzNSAxOSBjODkgNDggNDExIDQyMyA4MjMgOTU4IDQ1IDU5IDg1IDEwNyA4OCAxMDcKMiAwIDg3IC01MSAxODggLTExMnoiLz4KPHBhdGggZD0iTTU5NzcgMTI1MDkgYy00NDMgLTQ4IC03NjggLTQ4MiAtODcyIC0xMTY3IC02IC0zNiAtMyAtNDYgMTggLTcyIDE0Ci0xNiA1NCAtODAgODkgLTE0MSA5NiAtMTY4IDExNSAtMTgyIDMzOCAtMjU3IDM3NSAtMTI0IDU3OSAtMTY2IDgxMCAtMTY2IDE3NwowIDI1MCAxNCAzNjUgNzAgMTI2IDYyIDIxOSAxNTQgMzczIDM3MiAxNjEgMjI4IDIxOSAzODUgMjA5IDU2NyAtNiAxMjIgLTMxCjE5OCAtOTYgMjk4IC0xMzAgMTk3IC0zNzIgMzQzIC03MjYgNDM3IC0yMDIgNTQgLTM3NCA3NCAtNTA4IDU5eiBtNzIyIC0zODYKYzEwNSAtMTM4IDIyMSAtNDE0IDI1MiAtNTk3IDE5IC0xMTEgOCAtMjQ5IC0yNiAtMzI0IC00OSAtMTA5IC0xMzIgLTE2OSAtMjc2Ci0xOTggLTE2NCAtMzMgLTQwMiAzIC03MTkgMTA5IGwtMTg1IDYyIDcwIDIgYzIxOCA4IDM3NiA0MiA1MjEgMTE0IDgwIDM5IDExNAo2MiAxNjMgMTE0IDE0MyAxNDkgMTcxIDMyMCAxMDEgNjE1IC0zMyAxMzcgLTM2IDE3MCAtMTkgMTg3IDIwIDIwIDYzIC0xMSAxMTgKLTg0eiIvPgo8cGF0aCBkPSJNNTE4MCA5MDI2IGMtMzYgLTE5IC0xMDIgLTcxIC0xNzIgLTEzNSAtNCAtMyAtNTQgLTIzNiAtMTEyIC01MTYKLTMwOCAtMTQ5OSAtNDExIC0xOTIxIC01MjcgLTIxNjUgLTM3IC03OCAtNTMgLTk3IC0xODIgLTIyNCAtNzggLTc2IC0xOTgKLTE4NCAtMjY2IC0yNDAgLTY4IC01NSAtMTI5IC0xMDUgLTEzNSAtMTExIC02NCAtNTcgLTk2IC0xNTEgLTc2IC0yMjUgMjgKLTEwNCAxNjAgLTE4MCAzNTYgLTIwNSBsNTEgLTYgNTcgLTExNCBjNjYgLTEzNCAxNDMgLTIyNSAyMjEgLTI2MSA2MiAtMzAgMTA4Ci0zMCAxODIgLTIgNzkgMjkgMjA4IDE1OCAyODAgMjgxIDI5IDQ5IDU0IDk0IDU2IDEwMCAyIDcgNDMgLTI2IDkxIC03MSAxNDEKLTEzNSAyMDkgLTE1MSAyODkgLTY4IDIzIDI0IDg0IDExMyAxMzYgMTk5IGw5NCAxNTcgLTUgNjIgYy05IDEwNSAtNTMgMTgyCi0yNDggNDI4IC0xNTIgMTkyIC0xNTYgMTk5IC0xNDEgMjYzIDE1IDY1IDEyNiAzNDMgMzA2IDc2NyAzNzcgODg1IDUzMiAxMjg0CjU3MCAxNDY1IDE5IDk1IDE5IDIxMCAwIDI2NiAtMzIgODggLTEwOSAxMzUgLTIxMCAxMjcgLTg0IC03IC0xMDQgLTI3IC0xMzIKLTEzMyAtMTMgLTUwIC03NyAtMjU5IC0xNDMgLTQ2NSAtMTM0IC00MjQgLTE3MiAtNTQ4IC0xOTQgLTYzNyAtMTggLTY3IC01NQotMTU3IC0xMzYgLTMyOCAtMjc4IC01ODYgLTM1OSAtOTI1IC0yODAgLTExNzcgMjggLTg5IDYzIC0xNDMgMTYwIC0yNDggMTA5Ci0xMTggMTI1IC0xNDEgMTY2IC0yMjUgMjcgLTU2IDM0IC04MSAzNCAtMTMxIDAgLTUzIC00IC02OCAtMzIgLTEwOSAtMTggLTI2Ci00NyAtNTYgLTY0IC02NiBsLTMwIC0xOSAtNzEgMTA4IGMtODggMTMyIC0xMzAgMTgxIC0xOTAgMjIxIC00OCAzMiAtOTggNDAKLTEzMyAyMSAtMzEgLTE2IC02NyAtODggLTk0IC0xODcgLTQxIC0xNDYgLTc1IC0yMjggLTExMyAtMjcyIC04MCAtOTQgLTE0NgotMjYgLTE2MiAxNjYgLTcgODMgLTExIDk4IC0zNCAxMjEgLTI5IDI5IC0zNSAyOSAtMjYyIDIxIC0xMDIgLTQgLTExMyAtMgotMTUzIDIxIC0xMDMgNTggLTQ3IDE0MSAxNjUgMjQ1IDgzIDQxIDI3MiAxMTggMzQ3IDE0MiAxNiA1IDMzIDE2IDM4IDI0IDE4CjMzIDM4MyAxMTk0IDU0MyAxNzMxIDI0MCA4MDEgMzE3IDExMDkgMzE5IDEyNzUgMSA3OCAtMiA5NiAtMjAgMTIwIC0yOCAzOAotODIgNDEgLTE0NCA5eiIvPgo8cGF0aCBkPSJNNzI5MiA2NjA5IGMtMzggLTExIC0zNyAtMTMgMTAgLTE0NiA1MSAtMTQyIDEzNiAtMjUwIDIxMiAtMjcyIDk5Ci0yNyAyNDYgNzQgMjQ2IDE2OSAwIDc1IC02NyAxNDkgLTE5NSAyMTcgLTYzIDMzIC03OSAzNyAtMTU1IDQwIC00NyAxIC0xMDAKLTIgLTExOCAtOHoiLz4KPHBhdGggZD0iTTc3MzIgNTIxNSBjLTY2IC0yOSAtMTQ0IC0xMDggLTIyNiAtMjI5IC0zMCAtNDUgLTM0IC05NiAtOCAtMTE5IDQ2Ci00MiAyMjQgLTg3IDM0NCAtODcgbDM2IDAgNCA2OCBjNCA4NyAtNiAyMjUgLTIxIDI3OSAtMTMgNDcgLTQ1IDg5IC03NiA5NwotMTEgMyAtMzUgLTEgLTUzIC05eiIvPgo8cGF0aCBkPSJNNzA1MCA0NDQ0IGMtNzcgLTM2IC0xMzEgLTgzIC0xNjUgLTE0NSAtMjggLTUzIC0yOCAtNTQgLTE3IC0xNDEgNwotNTYgMTkgLTEwNCAzNCAtMTMxIDIwIC0zNiAyOCAtNDIgNjAgLTQ1IDQ0IC00IDc5IDEzIDE3NSA4NSA5MiA3MCAxMjMgMTI2CjEyMyAyMjMgMCA0OCAtNiA3OCAtMjIgMTEwIC0zOCA3NSAtOTQgODggLTE4OCA0NHoiLz4KPHBhdGggZD0iTTY5OTAgMzgwOCBjLTQwIC0yMiAtNTcgLTgzIC00MyAtMTY0IDE5IC0xMDcgNzQgLTE0OCAxOTggLTE0NyA2OSAwCjEyNCAyMCAxNjAgNTkgNjIgNjcgMCAxNTcgLTE1OCAyMjkgLTY4IDMxIC0xMjUgMzkgLTE1NyAyM3oiLz4KPHBhdGggZD0iTTczMzYgMzE4OSBjLTE2IC0xMiAtMzUgLTM4IC00MyAtNTcgLTE0IC0zMyAtMTMgLTM3IDIwIC0xMDYgNjQKLTEzMyAxMzEgLTE5NyAxOTAgLTE4MiA2NyAxNiA4NSAxNjQgMzMgMjY5IC0zMyA2OCAtNjAgODggLTEyNCA5NSAtMzggMyAtNTMKMCAtNzYgLTE5eiIvPgo8L2c+Cjwvc3ZnPgo="; 
+        let cdClicks = 0;
+        let cdTimeout;
+        let cdMesh = null;
+        let isCDLoading = false;
+
+        mainLogo.addEventListener('click', () => {
+            cdClicks++;
+            clearTimeout(cdTimeout);
+            if (cdClicks >= 5) {
+                toggleCD();
+                cdClicks = 0;
+            } else {
+                cdTimeout = setTimeout(() => cdClicks = 0, 1000);
+            }
+        });
+
+        function toggleCD() {
+            if (isCDLoading) return;
+            if (!cdBase64) {
+                console.log("Easter egg triggered, but no Base64 string was provided in the code.");
+                return;
+            }
+
+            if (cdMesh) {
+                scene.remove(cdMesh);
+                cdMesh.geometry.dispose();
+                cdMesh.material.map.dispose();
+                cdMesh.material.dispose();
+                cdMesh = null;
+                return;
+            }
+
+            isCDLoading = true;
+            const img = new Image();
+            
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1024;
+                canvas.height = 1024;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 1024, 1024);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                // Linear filtering smooths out jagged SVG edges in WebGL
+                texture.minFilter = THREE.LinearMipmapLinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.anisotropy = 16; 
+
+                const bx = parseFloat(bedXInput.value) || 256;
+                const by = parseFloat(bedYInput.value) || 256;
+                
+                const size = Math.min(bx, by) * 0.8;
+                const geometry = new THREE.PlaneGeometry(size, size);
+                const material = new THREE.MeshBasicMaterial({ 
+                    map: texture, 
+                    transparent: true, 
+                    opacity: 0.9, 
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+
+                cdMesh = new THREE.Mesh(geometry, material);
+                cdMesh.rotation.x = -Math.PI / 2;
+                cdMesh.position.set(bx / 2, 0.5, -by / 2); 
+                scene.add(cdMesh);
+
+                isCDLoading = false;
+            };
+
+            img.onerror = () => {
+                console.error("Failed to load CD image. Check your Base64 string.");
+                isCDLoading = false;
+            };
+
+            img.src = cdBase64;
+        }
+
+        // --- Slider & Transition Logic ---
+
+        function updateSliderIndicator() {
+            if (maxRenderZ > 0) {
+                const tz = parseFloat(transitionZInput.value);
+                if (!isNaN(tz) && tz >= 0 && tz <= maxRenderZ) {
+                    // Center of thumb travels approx from 8px to calc(100% - 8px)
+                    const percent = tz / maxRenderZ;
+                    transitionIndicator.style.left = `calc(8px + ${percent} * (100% - 16px))`;
+                    transitionIndicator.classList.remove('hidden');
+                } else {
+                    transitionIndicator.classList.add('hidden');
+                }
+            } else {
+                transitionIndicator.classList.add('hidden');
+            }
+        }
+        
+        function updateZHint() {
+            if (!baseLayerHeights.length) return;
+            const currentZ = parseFloat(transitionZInput.value);
+            if (isNaN(currentZ)) return;
+
+            const nearestZ = baseLayerHeights.reduce((prev, curr) => 
+                Math.abs(curr - currentZ) < Math.abs(prev - currentZ) ? curr : prev
+            );
+            
+            if (Math.abs(currentZ - nearestZ) < 0.001) {
+                zHintText.textContent = "✓ Exact layer match.";
+                zHintText.className = "text-green-500 font-medium";
+                zHintAction.classList.add('hidden');
+            } else {
+                zHintText.textContent = "Nearest actual layer:";
+                zHintText.className = "text-gray-400";
+                zHintAction.textContent = `${nearestZ.toFixed(2)}mm (Snap)`;
+                zHintAction.classList.remove('hidden');
+                currentSnappedZ = nearestZ;
+            }
+        }
+
+        zHintAction.addEventListener('click', () => {
+            if (currentSnappedZ !== null) {
+                transitionZInput.value = currentSnappedZ;
+                updateZHint();
+                updateSliderIndicator();
+                renderGeometry();
+            }
+        });
+
+        // Arrow Key auto-snapping to valid layer heights
+        transitionZInput.addEventListener('keydown', (e) => {
+            if (!baseLayerHeights.length) return;
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const currentZ = parseFloat(transitionZInput.value) || 0;
+                let nextZ = currentZ;
+
+                if (e.key === 'ArrowUp') {
+                    const higher = baseLayerHeights.filter(z => z > currentZ + 0.001);
+                    if (higher.length > 0) nextZ = higher[0];
+                } else if (e.key === 'ArrowDown') {
+                    const lower = baseLayerHeights.filter(z => z < currentZ - 0.001);
+                    if (lower.length > 0) nextZ = lower[lower.length - 1];
+                }
+
+                // Strip annoying float artifacts
+                transitionZInput.value = parseFloat(nextZ.toFixed(3));
+                updateZHint();
+                updateSliderIndicator();
+                renderGeometry();
+            }
+        });
+
+        transitionZInput.addEventListener('input', () => {
+            updateZHint();
+            updateSliderIndicator();
+            renderGeometry();
+        });
+
+        setTransitionBtn.addEventListener('click', () => {
+            if (maxRenderZ === 0) return; 
+            
+            transitionZInput.value = parseFloat(zSlider.value).toFixed(2);
+            updateZHint();
+            updateSliderIndicator();
+            renderGeometry();
+            
+            // UX feedback
+            const originalText = setTransitionBtn.textContent;
+            setTransitionBtn.textContent = "Set!";
+            setTransitionBtn.classList.remove('bg-gray-700', 'hover:bg-amber-600', 'border-gray-600');
+            setTransitionBtn.classList.add('bg-green-600', 'border-green-500');
+            
+            setTimeout(() => {
+                setTransitionBtn.textContent = "Set Transition";
+                setTransitionBtn.classList.remove('bg-green-600', 'border-green-500');
+                setTransitionBtn.classList.add('bg-gray-700', 'hover:bg-amber-600', 'border-gray-600');
+            }, 1000);
+        });
+
+        // Pre-parse Base File to build layer array on selection
+        fileBaseInput.addEventListener('change', async (e) => {
+            if(e.target.files.length > 0) {
+                zHintText.textContent = "Scanning file for layer heights...";
+                zHintText.className = "text-gray-400";
+                zHintAction.classList.add('hidden');
+                try {
+                    const text = await extractTextFromFile(e.target.files[0]);
+                    const zSet = new Set();
+                    const lines = text.split('\n');
+                    for (let line of lines) {
+                        const z = getLayerZFromComment(line);
+                        if (z !== null) zSet.add(z);
+                    }
+                    baseLayerHeights = Array.from(zSet).sort((a, b) => a - b);
+                    if (baseLayerHeights.length === 0) {
+                        zHintText.textContent = "Missing layer heights. Enable Verbose G-code!";
+                        zHintText.className = "text-red-500 font-bold";
+                        showToast("Failed to parse layer heights. Make sure 'Verbose G-code' is enabled in your slicer settings.", "error");
+                    } else {
+                        updateZHint();
+                    }
+                } catch (err) {
+                    zHintText.textContent = "Failed to parse layers for snapping.";
+                }
+            }
+        });
+
+        // Pre-parse Vase File to extract original line width
+        fileVaseInput.addEventListener('change', async (e) => {
+            if(e.target.files.length > 0) {
+                // UX Feedback: Prove we are explicitly scanning the Vase file
+                slicedWidthInput.type = "text";
+                slicedWidthInput.value = "Scanning...";
+                try {
+                    const text = await extractTextFromFile(e.target.files[0]);
+                    
+                    // Fast, safe string search from the end of the file (bypassing line-array memory limits)
+                    const specificKeys = [
+                        "outer_wall_line_width", 
+                        "outer wall line width", 
+                        "external_perimeter_extrusion_width", 
+                        "perimeter_extrusion_width"
+                    ];
+                    const genericKeys = ["line_width", "extrusion_width"];
+
+                    const findSetting = (keys) => {
+                        for (let key of keys) {
+                            // Look for the setting anywhere in the giant string, prioritizing the final output values
+                            for (let prefix of ["; ", ";"]) {
+                                let idx = text.lastIndexOf(prefix + key);
+                                if (idx !== -1) {
+                                    let endIdx = text.indexOf('\n', idx);
+                                    let line = text.substring(idx, endIdx !== -1 ? endIdx : text.length);
+                                    let m = line.match(/[:=]\s*([0-9.]+)/);
+                                    if (m) return parseFloat(m[1]);
+                                }
+                            }
+                        }
+                        return null;
+                    };
+
+                    let detectedWidth = findSetting(specificKeys);
+                    if (detectedWidth === null) {
+                        detectedWidth = findSetting(genericKeys);
+                    }
+
+                    slicedWidthInput.type = "number";
+                    if (detectedWidth !== null) {
+                        slicedWidthInput.value = detectedWidth.toFixed(2);
+                        showToast(`Detected ${detectedWidth.toFixed(2)}mm wall width from Vase file.`, 'success');
+                    } else {
+                        slicedWidthInput.value = "0.42";
+                        showToast("Could not auto-detect vase width. Defaulting to 0.42mm.", 'info');
+                    }
+                    
+                    saveSettings();
+                } catch (err) {
+                    slicedWidthInput.type = "number";
+                    slicedWidthInput.value = "0.42";
+                    console.warn("Failed to auto-detect vase line width.", err);
+                }
+            }
+        });
+
+        // --- UI Interactions ---
+
+        // Drag & Drop Styling
+        const setupDropZone = (inputEl, dropZoneEl, labelEl) => {
+            inputEl.addEventListener('change', () => {
+                if(inputEl.files.length > 0) {
+                    labelEl.textContent = inputEl.files[0].name;
+                    labelEl.classList.add('text-amber-400');
+                }
+            });
+            inputEl.addEventListener('dragenter', () => dropZoneEl.classList.add('drag-over'));
+            inputEl.addEventListener('dragleave', () => dropZoneEl.classList.remove('drag-over'));
+            inputEl.addEventListener('drop', () => dropZoneEl.classList.remove('drag-over'));
+        };
+        setupDropZone(fileBaseInput, dropBase, labelBase);
+        setupDropZone(fileVaseInput, dropVase, labelVase);
+
+        // Modal Logic
+        guideBtn.addEventListener('click', () => guideModal.classList.remove('hidden'));
+        closeGuideBtn.addEventListener('click', () => guideModal.classList.add('hidden'));
+        guideModal.addEventListener('click', (e) => {
+            if (e.target === guideModal) guideModal.classList.add('hidden');
+        });
+
+        // --- ThreeJS Setup ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111827); 
+        
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.panSpeed = 0.8;
+        
+        // --- Zoom Speed Logic ---
+        const zoomButtons = document.querySelectorAll('#zoomSpeedControls button');
+        let currentZoomSpeed = localStorage.getItem('kintsugi_zoomSpeed') || '0.35';
+
+        function applyZoomSpeed(speedStr) {
+            currentZoomSpeed = speedStr;
+            controls.zoomSpeed = parseFloat(speedStr);
+            localStorage.setItem('kintsugi_zoomSpeed', speedStr);
+            
+            // Update UI classes
+            zoomButtons.forEach(btn => {
+                if (btn.dataset.speed === speedStr) {
+                    btn.className = "flex-1 bg-amber-600 text-white rounded py-1 text-[10px] transition-colors border border-amber-500 font-bold shadow-inner";
+                } else {
+                    btn.className = "flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded py-1 text-[10px] transition-colors border border-transparent";
+                }
+            });
+        }
+
+        zoomButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                applyZoomSpeed(e.target.dataset.speed);
+            });
+        });
+
+        // Setup initial zoom speed
+        applyZoomSpeed(currentZoomSpeed);
+        
+        let gridHelper = null;
+        let currentLineMesh = null;
+
+        function updateGrid() {
+            const bx = parseFloat(bedXInput.value) || 256;
+            const by = parseFloat(bedYInput.value) || 256;
+            
+            if (gridHelper) scene.remove(gridHelper);
+            
+            // Rebuild Grid
+            const maxDim = Math.max(bx, by);
+            gridHelper = new THREE.GridHelper(maxDim, maxDim/10, 0x444444, 0x222222);
+            // Slicers generally use 0,0 at bottom-left, so center is bx/2, by/2
+            gridHelper.position.set(bx/2, 0, -by/2);
+            scene.add(gridHelper);
+
+            // Center Camera and Controls
+            resetCamera();
+            
+            // Re-center secret mesh if it exists
+            if (cdMesh) {
+                cdMesh.position.set(bx / 2, 0.5, -by / 2);
+            }
+        }
+
+        function resetCamera() {
+            const bx = parseFloat(bedXInput.value) || 256;
+            const by = parseFloat(bedYInput.value) || 256;
+            const maxDim = Math.max(bx, by);
+            
+            controls.target.set(bx/2, 0, -by/2); 
+            camera.position.set(bx/2, maxDim*0.8, maxDim*1.2); 
+            controls.update();
+        }
+
+        // Attach reset camera to the Home View button
+        homeViewBtn.addEventListener('click', resetCamera);
+
+        // Initialize Grid
+        updateGrid();
+
+        window.addEventListener('resize', () => {
+            if (!container) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- Utils & Parsers ---
+
+        function updateStatus(msg, isError = false) {
+            statusArea.classList.remove('hidden');
+            statusArea.textContent = msg;
+            if (isError) {
+                statusArea.classList.add('text-red-400', 'border-red-900');
+                statusArea.classList.remove('text-gray-400', 'border-gray-700');
+            } else {
+                statusArea.classList.remove('text-red-400', 'border-red-900');
+                statusArea.classList.add('text-gray-400', 'border-gray-700');
+            }
+        }
+
+        async function extractTextFromFile(file) {
+            if (file.name.toLowerCase().endsWith('.3mf')) {
+                try {
+                    const zip = new JSZip();
+                    const contents = await zip.loadAsync(file);
+                    const gcodeFilename = Object.keys(contents.files).find(name => name.toLowerCase().endsWith('.gcode'));
+                    if (!gcodeFilename) throw new Error(`No .gcode file found inside ${file.name}.`);
+                    return await contents.files[gcodeFilename].async("string");
+                } catch (err) {
+                    throw new Error(`Failed to read 3MF file: ${err.message}`);
+                }
+            } else {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = e => reject(e);
+                    reader.readAsText(file);
+                });
+            }
+        }
+
+        function cleanLine(line) { return line.replace(/^N\d+\s*/i, '').trim(); }
+
+        function getLayerZFromComment(line) {
+            const m = cleanLine(line).match(/^;[ \t]*\b(?:Z|layer_z|HEIGHT|Z_HEIGHT)\b[ \t]*[:=][ \t]*([-0-9.]+)/i);
+            return m ? parseFloat(m[1]) : null;
+        }
+
+        function extractPhysicalZ(line) {
+            const match = cleanLine(line).match(/^[Gg][0123].*[Zz]([+-]?[0-9.]+)/);
+            return match ? parseFloat(match[1]) : null;
+        }
+
+        function parseTimeStr(str) {
+            if (!str) return 0;
+            let total = 0;
+            const h = str.match(/(\d+)h/i);
+            const m = str.match(/(\d+)m/i);
+            const s = str.match(/(\d+)s/i);
+            if (h) total += parseInt(h[1]) * 3600;
+            if (m) total += parseInt(m[1]) * 60;
+            if (s) total += parseInt(s[1]);
+            return total;
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            if (h > 0) return `${h}h ${m}m`;
+            return `${m}m`;
+        }
+
+        // Helper to safely extract metadata from the top and bottom of the file without crashing regex engine
+        function extractSlicerMeta(linesArray) {
+            let time = 0;
+            let maxZ = 0.1;
+            const scanRange = [].concat(linesArray.slice(0, 2000), linesArray.slice(-2000));
+            for (let line of scanRange) {
+                if (!time) {
+                    const tMatch = line.match(/(?:total estimated time|model printing time)[ :=]+([0-9hms ]+)/i);
+                    if (tMatch) time = parseTimeStr(tMatch[1]);
+                }
+                if (maxZ === 0.1) {
+                    const zMatch = line.match(/max_z_height:[ \t]*([-0-9.]+)/i);
+                    if (zMatch) maxZ = parseFloat(zMatch[1]);
+                }
+            }
+            return { time, maxZ };
+        }
+
+        // --- Main Processing Engine ---
+
+        async function processFiles() {
+            const fileBase = fileBaseInput.files[0];
+            const fileVase = fileVaseInput.files[0];
+            const transitionZ = parseFloat(transitionZInput.value);
+            
+            // Combine Flow Multiplier and optional Wall Width Tuning
+            let flowMultiplier = parseFloat(flowInput.value) || 1.0;
+            
+            if (useWallThickness.checked) {
+                const slicedWidth = parseFloat(slicedWidthInput.value) || 0.42;
+                const targetWidth = parseFloat(targetWidthInput.value) || 0.42;
+                // e.g. Base flow 1.05 * (0.8 Target / 0.4 Sliced) = 2.1 Final Flow Multiplier
+                flowMultiplier *= (targetWidth / slicedWidth);
+            }
+            
+            const density = parseFloat(matDensityInput.value) || 1.24; // Default to PLA if empty
+            
+            const advSpeedEnabled = useSpeedTuning.checked;
+
+            if (!fileBase || !fileVase) {
+                showToast("Please upload both a Base and a Vase file.", "error");
+                updateStatus("Error: Please select both files.", true);
+                return;
+            }
+
+            loadingOverlay.classList.remove('hidden');
+            downloadContainer.classList.add('hidden');
+            statsPanel.classList.add('hidden');
+            loadingText.textContent = "Reading files...";
+
+            try {
+                template3mfFile = null;
+                templateGcodePath = null;
+                if (fileBase.name.toLowerCase().endsWith('.3mf')) template3mfFile = fileBase;
+                else if (fileVase.name.toLowerCase().endsWith('.3mf')) template3mfFile = fileVase;
+
+                if (template3mfFile) {
+                    const zip = new JSZip();
+                    const contents = await zip.loadAsync(template3mfFile);
+                    templateGcodePath = Object.keys(contents.files).find(name => name.toLowerCase().endsWith('.gcode'));
+                }
+
+                await new Promise(r => setTimeout(r, 50)); 
+                const baseText = await extractTextFromFile(fileBase);
+                const vaseText = await extractTextFromFile(fileVase);
+
+                loadingText.textContent = "Kintsugi Splicing...";
+                await new Promise(r => setTimeout(r, 50)); 
+
+                const baseLines = baseText.split('\n');
+                const vaseLines = vaseText.split('\n');
+                const outputLines = [];
+                
+                // --- Extractor Variables ---
+                let baseZ = -1, vaseZ = -1;
+                let foundBaseLayers = false, startedPrintingVase = false;
+                
+                // Fan & Temp Memory for Blending
+                let lastVaseTempHotend = null;
+                let lastVaseTempWait = null;
+                let lastVaseFan = null;
+
+                // Time/Weight Trackers
+                let baseTotalSeconds = 0, vaseTotalSeconds = 0;
+                let baseMaxZ = 0.1, vaseMaxZ = 0.1;
+                let totalExtrudedE = 0;
+                let finalLayerCount = 0;
+
+                // Metadata Extraction (Safely)
+                const baseMeta = extractSlicerMeta(baseLines);
+                baseTotalSeconds = baseMeta.time;
+                baseMaxZ = baseMeta.maxZ;
+
+                const vaseMeta = extractSlicerMeta(vaseLines);
+                vaseTotalSeconds = vaseMeta.time;
+                vaseMaxZ = vaseMeta.maxZ;
+
+                // Extract Nominal Layer Height to calculate physical tuning zones
+                let nominalLayerHeight = 0.2;
+                for (let line of baseLines.slice(0, 2000)) {
+                    let hm = line.match(/\b(?:HEIGHT|layer_height)[ \t]*[:=][ \t]*([-0-9.]+)/i);
+                    if (hm) {
+                        nominalLayerHeight = parseFloat(hm[1]);
+                        break;
+                    }
+                }
+
+                // 1. Process Base Print
+                const baseOutputObjs = [];
+                let currentFBase = 3000;
+                let isRelativeEBase = true; // Modern default
+                let lastEBase = 0;
+                let curZBase = 0;
+
+                for (let line of baseLines) {
+                    const cz = getLayerZFromComment(line);
+                    if (cz !== null) {
+                        baseZ = cz;
+                        foundBaseLayers = true;
+                        finalLayerCount++;
+                        curZBase = cz; // Update Z from comments
+                    }
+
+                    if (foundBaseLayers && baseZ >= transitionZ) break;
+                    
+                    const cleaned = cleanLine(line);
+                    
+                    // Always try to keep an accurate physical Z height
+                    const pz = extractPhysicalZ(line);
+                    if (pz !== null) curZBase = pz;
+
+                    if (cleaned.match(/^M82/)) isRelativeEBase = false;
+                    if (cleaned.match(/^M83/)) isRelativeEBase = true;
+                    if (cleaned.match(/^G92.*[Ee]0/)) lastEBase = 0;
+
+                    const fMatch = cleaned.match(/[Ff]([+-]?[0-9.]+)/);
+                    if (fMatch) currentFBase = parseFloat(fMatch[1]);
+
+                    const eMatch = cleaned.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
+                    let isExtr = false;
+                    if (eMatch) {
+                        let eRaw = parseFloat(eMatch[1]);
+                        let eDelta = isRelativeEBase ? eRaw : (eRaw - lastEBase);
+                        if (eDelta > 0) {
+                            totalExtrudedE += eDelta;
+                            isExtr = true;
+                        }
+                        lastEBase = eRaw;
+                    }
+
+                    baseOutputObjs.push({ text: line, isExtrusion: isExtr, origF: currentFBase, z: curZBase });
+                }
+
+                if (!foundBaseLayers) {
+                    throw new Error("Could not detect layer heights. Make sure 'Verbose G-code' is checked in your slicer settings before exporting!");
+                }
+
+                // Apply Slowdown to Base lines before Transition using True Z Distance
+                const layersBeforeBase = parseInt(transLayersBefore.value) || 0;
+                const zoneBeforeZ = layersBeforeBase * nominalLayerHeight;
+                
+                if (advSpeedEnabled && zoneBeforeZ > 0) {
+                    let targetF = (parseFloat(transSpeedInput.value) || 20) * 60; // mm/s to mm/min
+                    let ramp = rampModeInput.value === 'ramp';
+                    
+                    for (let i = 0; i < baseOutputObjs.length; i++) {
+                        let obj = baseOutputObjs[i];
+                        if (obj.isExtrusion) {
+                            let zDist = transitionZ - obj.z;
+                            // If we are inside the slowdown zone
+                            if (zDist <= zoneBeforeZ && zDist >= 0) {
+                                // Ratio: 0 at the start of the zone, 1 right at the splice layer
+                                let ratio = ramp ? (1.0 - (zDist / zoneBeforeZ)) : 1.0;
+                                let newF = obj.origF - (obj.origF - targetF) * ratio;
+                                
+                                let txt = obj.text;
+                                if (/[Ff][+-]?[0-9.]+/.test(txt)) {
+                                    txt = txt.replace(/([Ff])([+-]?[0-9.]+)/, `F${newF.toFixed(0)}`);
+                                } else {
+                                    let commentIdx = txt.indexOf(';');
+                                    if (commentIdx !== -1) {
+                                        txt = txt.slice(0, commentIdx) + ` F${newF.toFixed(0)} ` + txt.slice(commentIdx);
+                                    } else {
+                                        txt += ` F${newF.toFixed(0)}`;
+                                    }
+                                }
+                                obj.text = txt;
+                            }
+                        }
+                    }
+                }
+
+                // Push base lines safely to prevent Stack Overflow
+                for (let i = 0; i < baseOutputObjs.length; i++) {
+                    outputLines.push(baseOutputObjs[i].text);
+                }
+
+                // 2. Pre-parse Vase for Fans & Temps up to Transition
+                for (let line of vaseLines) {
+                    const cz = getLayerZFromComment(line);
+                    if (cz !== null) vaseZ = cz;
+                    else if (vaseZ > 0) {
+                        const pz = extractPhysicalZ(line);
+                        if (pz !== null) vaseZ = pz;
+                    }
+
+                    if (vaseZ >= transitionZ) break;
+                    
+                    const cleaned = cleanLine(line);
+                    if (cleaned.match(/^M104/i)) lastVaseTempHotend = cleaned;
+                    if (cleaned.match(/^M109/i)) lastVaseTempWait = cleaned;
+                    if (cleaned.match(/^M106/i)) lastVaseFan = cleaned;
+                }
+
+                // 3. Insert Kintsugi Splicer Transition & Blended Environment
+                let overrideTemp = transTempInput.value ? parseInt(transTempInput.value) : null;
+                let overrideFan = transFanInput.value ? parseInt(transFanInput.value) : null;
+
+                outputLines.push("\n; --- KINTSUGIVASE TRANSITION START ---");
+                outputLines.push("G1 E-1.0 F1800 ; Kintsugi: Retract to prevent oozing");
+                outputLines.push(`G1 Z${(transitionZ + 0.4).toFixed(3)} F3000 ; Kintsugi: Z-Hop to avoid dragging`);
+                outputLines.push("M83 ; Ensure relative extrusion");
+                outputLines.push("G92 E0 ; Reset Extruder Distance");
+                
+                if (overrideTemp !== null && !isNaN(overrideTemp)) {
+                    outputLines.push(`M104 S${overrideTemp} ; Kintsugi: Override Blend Temp`);
+                    outputLines.push(`M109 S${overrideTemp} ; Kintsugi: Override Wait Temp`);
+                } else {
+                    if (lastVaseTempHotend) outputLines.push(lastVaseTempHotend + " ; Kintsugi Blend Temp");
+                    if (lastVaseTempWait) outputLines.push(lastVaseTempWait + " ; Kintsugi Wait Temp");
+                }
+
+                if (overrideFan !== null && !isNaN(overrideFan)) {
+                    outputLines.push(`M106 S${overrideFan} ; Kintsugi: Override Blend Fan`);
+                } else {
+                    if (lastVaseFan) outputLines.push(lastVaseFan + " ; Kintsugi Blend Fan");
+                }
+
+                outputLines.push("G1 E1.0 F1800 ; Kintsugi: Un-retract prime");
+                outputLines.push("; --- KINTSUGIVASE TRANSITION END ---\n");
+
+                // 4. Process Vase Print
+                let startAppending = false;
+                vaseZ = -1;
+                
+                let layersAfterVase = parseInt(transLayersAfter.value) || 0;
+                let targetFVase = (parseFloat(transSpeedInput.value) || 20) * 60; // mm/s to mm/min
+                let rampVase = rampModeInput.value === 'ramp';
+                let forceRestoreF = null;
+                let zoneAfterZ = layersAfterVase * nominalLayerHeight;
+
+                let isRelativeEVase = true; // Injected M83
+                let lastEVase = 0; // Injected G92 E0
+                let currentFVase = 3000;
+
+                for (let line of vaseLines) {
+                    if (startAppending) {
+                        let outLine = line;
+                        
+                        const cleanedOut = cleanLine(outLine);
+                        if (cleanedOut.match(/^M82/)) isRelativeEVase = false;
+                        if (cleanedOut.match(/^M83/)) isRelativeEVase = true;
+                        if (cleanedOut.match(/^G92.*[Ee]0/)) lastEVase = 0;
+
+                        if (flowMultiplier !== 1.0) {
+                            outLine = outLine.replace(/([Ee])([+-]?[0-9.]+)/, (match, p1, p2) => {
+                                let eVal = parseFloat(p2);
+                                if (eVal > 0 || !isRelativeEVase) eVal *= flowMultiplier;
+                                return p1 + eVal.toFixed(5);
+                            });
+                        }
+                        
+                        const cz = getLayerZFromComment(outLine);
+                        if (cz !== null) {
+                            vaseZ = cz;
+                            finalLayerCount++;
+                        } else {
+                            const pz = extractPhysicalZ(outLine);
+                            if (pz !== null) vaseZ = pz;
+                        }
+
+                        const fMatch = cleanedOut.match(/[Ff]([+-]?[0-9.]+)/);
+                        if (fMatch) currentFVase = parseFloat(fMatch[1]);
+                        let origF = currentFVase;
+
+                        const eMatch = cleanedOut.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
+                        let isExtr = false;
+                        if (eMatch) {
+                            let eRaw = parseFloat(eMatch[1]);
+                            let eDelta = isRelativeEVase ? eRaw : (eRaw - lastEVase);
+                            if (eDelta > 0) {
+                                totalExtrudedE += eDelta;
+                                isExtr = true;
+                            }
+                            lastEVase = eRaw;
+                        }
+
+                        // Apply Slowdown to Vase lines right after Transition using true Z distance
+                        if (advSpeedEnabled && zoneAfterZ > 0 && isExtr && vaseZ >= transitionZ) {
+                            let zDist = vaseZ - transitionZ;
+                            
+                            // Are we still inside the slowdown zone?
+                            if (zDist <= zoneAfterZ && zDist >= 0) {
+                                // Ratio: 0 right at the splice point, approaching 1 as it gets further away
+                                let ratio = rampVase ? (zDist / zoneAfterZ) : 0.0;
+                                let newF = targetFVase + (origF - targetFVase) * ratio;
+
+                                if (/[Ff][+-]?[0-9.]+/.test(outLine)) {
+                                    outLine = outLine.replace(/([Ff])([+-]?[0-9.]+)/, `F${newF.toFixed(0)}`);
+                                } else {
+                                    let commentIdx = outLine.indexOf(';');
+                                    if (commentIdx !== -1) {
+                                        outLine = outLine.slice(0, commentIdx) + ` F${newF.toFixed(0)} ` + outLine.slice(commentIdx);
+                                    } else {
+                                        outLine += ` F${newF.toFixed(0)}`;
+                                    }
+                                }
+                                // Tag this so we can explicitly restore the speed later
+                                forceRestoreF = origF;
+                                
+                            } else if (forceRestoreF !== null) {
+                                // We just exited the slowdown zone, immediately write a command to restore the original feedrate
+                                if (!/[Ff][+-]?[0-9.]+/.test(outLine)) {
+                                    let commentIdx = outLine.indexOf(';');
+                                    if (commentIdx !== -1) {
+                                        outLine = outLine.slice(0, commentIdx) + ` F${forceRestoreF.toFixed(0)} ` + outLine.slice(commentIdx);
+                                    } else {
+                                        outLine += ` F${forceRestoreF.toFixed(0)}`;
+                                    }
+                                }
+                                forceRestoreF = null; // Reset so it doesn't trigger again
+                            }
+                        }
+
+                        outputLines.push(outLine);
+                        continue;
+                    }
+
+                    const cleaned = cleanLine(line);
+                    const cz = getLayerZFromComment(line);
+                    if (cz !== null) {
+                        vaseZ = cz;
+                        startedPrintingVase = true;
+                    } else if (startedPrintingVase) {
+                        const pz = extractPhysicalZ(line);
+                        const eMatch = cleaned.match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
+                        if (pz !== null && eMatch && parseFloat(eMatch[1]) > 0) {
+                            vaseZ = pz;
+                        }
+                    }
+
+                    if (startedPrintingVase && vaseZ >= transitionZ) {
+                        startAppending = true;
+                        let outLine = line;
+                        
+                        const cleanedOut = cleanLine(outLine);
+                        if (cleanedOut.match(/^M82/)) isRelativeEVase = false;
+                        if (cleanedOut.match(/^M83/)) isRelativeEVase = true;
+                        if (cleanedOut.match(/^G92.*[Ee]0/)) lastEVase = 0;
+
+                        if (flowMultiplier !== 1.0) {
+                            outLine = outLine.replace(/([Ee])([+-]?[0-9.]+)/, (match, p1, p2) => {
+                                let eVal = parseFloat(p2);
+                                if (eVal > 0 || !isRelativeEVase) eVal *= flowMultiplier;
+                                return p1 + eVal.toFixed(5);
+                            });
+                        }
+                        
+                        // Treat the very first vase line as the start of the slow zone 
+                        const fMatch = cleanLine(outLine).match(/[Ff]([+-]?[0-9.]+)/);
+                        if (fMatch) currentFVase = parseFloat(fMatch[1]);
+                        let origF = currentFVase;
+                        
+                        const eMatch = cleanLine(outLine).match(/^[Gg][01].*[Ee]([+-]?[0-9.]+)/);
+                        if (eMatch) {
+                            let eRaw = parseFloat(eMatch[1]);
+                            let eDelta = isRelativeEVase ? eRaw : (eRaw - lastEVase);
+                            if (eDelta > 0) totalExtrudedE += eDelta;
+                            lastEVase = eRaw;
+                        }
+
+                        // Apply the initial slowdown right at the slice layer
+                        if (advSpeedEnabled && zoneAfterZ > 0) {
+                            let newF = targetFVase; // Ratio is 0 for the absolute first line
+                            if (/[Ff][+-]?[0-9.]+/.test(outLine)) {
+                                outLine = outLine.replace(/([Ff])([+-]?[0-9.]+)/, `F${newF.toFixed(0)}`);
+                            } else {
+                                let commentIdx = outLine.indexOf(';');
+                                if (commentIdx !== -1) {
+                                    outLine = outLine.slice(0, commentIdx) + ` F${newF.toFixed(0)} ` + outLine.slice(commentIdx);
+                                } else {
+                                    outLine += ` F${newF.toFixed(0)}`;
+                                }
+                            }
+                            forceRestoreF = origF;
+                        }
+                        
+                        outputLines.push(outLine);
+                    }
+                }
+
+                splicedGcodeText = outputLines.join('\n');
+                
+                // --- Generate Stats ---
+                const baseRatio = Math.min(1.0, transitionZ / baseMaxZ);
+                const vaseRatio = Math.max(0.0, (vaseMaxZ - transitionZ) / vaseMaxZ);
+                const estimatedSeconds = (baseTotalSeconds * baseRatio) + (vaseTotalSeconds * vaseRatio);
+                
+                // Volume = E * Pi * (d/2)^2. 
+                const mm3PerE = Math.PI * Math.pow(1.75 / 2, 2); 
+                // Convert mm^3 to cm^3 (/1000) then multiply by density (g/cm^3)
+                const weightGrams = (totalExtrudedE * mm3PerE * (density / 1000)).toFixed(1);
+
+                statTime.textContent = formatTime(estimatedSeconds) + " (~)";
+                statWeight.textContent = `${weightGrams}g`;
+                statLayers.textContent = finalLayerCount;
+                statsPanel.classList.remove('hidden');
+
+                loadingText.textContent = "Parsing 3D Toolpath...";
+                await new Promise(r => setTimeout(r, 50));
+                buildPreviewData(splicedGcodeText, transitionZ);
+
+                showToast("Splicing Complete!", "success");
+                updateStatus(`Success!\nTransition Z: ${transitionZ}mm\nLines: ${outputLines.length.toLocaleString()}`);
+                downloadContainer.classList.remove('hidden');
+
+            } catch (err) {
+                showToast(err.message, "error");
+                updateStatus(`Error: ${err.message}`, true);
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        // --- 3D Preview Engine ---
+
+        function buildPreviewData(gcode, transitionZ) {
+            parsedSegments = [];
+            maxRenderZ = 0;
+            
+            window.previewMaxes = { f: 1, flow: 0.1, width: 0.1, height: 0.1, temp: 1 };
+            window.previewMins = { temp: 999 };
+            let currentLayerHeight = 0.2;
+            let currentTemp = 0;
+
+            let lastX = 0, lastY = 0, lastZ = 0, currentF = 3000;
+            let isRelativeE = true; // Assume relative to start
+            let lastE = 0;
+
+            const lines = gcode.split('\n');
+
+            for (let line of lines) {
+                const cleaned = cleanLine(line);
+                
+                if (cleaned.startsWith(';')) {
+                    // Pull explicit nominal layer height from slicer comment
+                    const hMatch = cleaned.match(/\b(?:HEIGHT|layer_height)[ \t]*[:=][ \t]*([-0-9.]+)/i);
+                    if (hMatch) currentLayerHeight = parseFloat(hMatch[1]);
+                    continue;
+                }
+
+                // Extruder State Tracking
+                if (cleaned.match(/^M82/)) isRelativeE = false;
+                if (cleaned.match(/^M83/)) isRelativeE = true;
+                if (cleaned.match(/^G92.*[Ee]0/)) lastE = 0;
+                
+                // Parse Temperature commands
+                if (cleaned.match(/^M104 S([0-9.]+)/) || cleaned.match(/^M109 S([0-9.]+)/)) {
+                    currentTemp = parseFloat(RegExp.$1);
+                    if (currentTemp > window.previewMaxes.temp) window.previewMaxes.temp = currentTemp;
+                    if (currentTemp < window.previewMins.temp && currentTemp > 0) window.previewMins.temp = currentTemp;
+                }
+
+                if (!cleaned.match(/^[Gg][01]/)) continue;
+
+                const xMatch = cleaned.match(/[Xx]([+-]?[0-9.]+)/);
+                const yMatch = cleaned.match(/[Yy]([+-]?[0-9.]+)/);
+                const zMatch = cleaned.match(/[Zz]([+-]?[0-9.]+)/);
+                const eMatch = cleaned.match(/[Ee]([+-]?[0-9.]+)/); 
+                const fMatch = cleaned.match(/[Ff]([+-]?[0-9.]+)/);
+
+                if (fMatch) currentF = parseFloat(fMatch[1]);
+
+                let currentX = xMatch ? parseFloat(xMatch[1]) : lastX;
+                let currentY = yMatch ? parseFloat(yMatch[1]) : lastY;
+                let currentZ = zMatch ? parseFloat(zMatch[1]) : lastZ;
+
+                if (currentZ > maxRenderZ) maxRenderZ = currentZ;
+
+                let eDelta = 0;
+                if (eMatch) {
+                    let eRaw = parseFloat(eMatch[1]);
+                    eDelta = isRelativeE ? eRaw : (eRaw - lastE);
+                    lastE = eRaw;
+                }
+
+                if (eDelta > 0) {
+                    // FIX: Only track max feedrate for actual extrusion moves!
+                    // This stops lightning-fast travel moves (e.g., F30000) from ruining the color scale!
+                    if (currentF > window.previewMaxes.f) window.previewMaxes.f = currentF;
+
+                    const dx = currentX - lastX;
+                    const dy = currentY - lastY;
+                    const dz = currentZ - lastZ;
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    let flow = 0;
+                    let lineWidth = 0;
+                    let lHeight = currentLayerHeight;
+                    if (lHeight <= 0) lHeight = 0.2; // Fallback
+
+                    // Physical Toolpath Physics Calculations
+                    if (dist > 0.001) { // Guard against divide by zero or extreme outliers on travel blobs
+                        const volume = eDelta * 2.40528; // Vol = E * pi * (1.75/2)^2
+                        flow = (volume * currentF) / (60 * dist);
+                        
+                        const area = volume / dist;
+                        lineWidth = area / lHeight;
+                    }
+
+                    // Clamp extreme outliers for a cleaner color gradient
+                    if (flow > window.previewMaxes.flow && flow < 50) window.previewMaxes.flow = flow;
+                    if (lineWidth > window.previewMaxes.width && lineWidth < 3) window.previewMaxes.width = lineWidth;
+                    if (lHeight > window.previewMaxes.height && lHeight < 1) window.previewMaxes.height = lHeight;
+
+                    parsedSegments.push({
+                        x1: lastX, y1: lastY, z1: lastZ,
+                        x2: currentX, y2: currentY, z2: currentZ,
+                        f: currentF,
+                        flow: flow,
+                        width: lineWidth,
+                        height: lHeight,
+                        temp: currentTemp,
+                        type: currentZ >= transitionZ ? 'vase' : 'base'
+                    });
+                }
+                
+                lastX = currentX;
+                lastY = currentY;
+                lastZ = currentZ;
+            }
+
+            if (window.previewMins.temp === 999) window.previewMins.temp = 0;
+
+            // Setup Slider
+            zSlider.max = Math.ceil(maxRenderZ);
+            zSlider.step = 0.01;
+            zSlider.value = Math.ceil(maxRenderZ);
+            zSliderValue.textContent = `${zSlider.value}mm`;
+            
+            updateSliderIndicator();
+            renderGeometry();
+        }
+
+        function renderGeometry() {
+            if (!parsedSegments.length) return;
+
+            if (currentLineMesh) {
+                scene.remove(currentLineMesh);
+                currentLineMesh.geometry.dispose();
+                currentLineMesh.material.dispose();
+            }
+
+            const positions = [];
+            const colors = [];
+            
+            const mode = colorModeSelect.value;
+            const thresholdZ = parseFloat(zSlider.value);
+
+            const baseColor = new THREE.Color(0x3b82f6);
+            const vaseColor = new THREE.Color(0xf97316);
+            
+            const maxes = window.previewMaxes || { f: 3000, flow: 10, width: 0.4, height: 0.2, temp: 250 };
+            
+            let activeLayerValue = null;
+
+            for (let seg of parsedSegments) {
+                if (seg.z1 > thresholdZ || seg.z2 > thresholdZ) continue;
+
+                // Track value for selected Z layer. Slicer outer walls print last so this grabs accurate outer values.
+                if (Math.abs(seg.z2 - thresholdZ) < 0.05 || Math.abs(seg.z1 - thresholdZ) < 0.05) {
+                    if (mode === 'speed') activeLayerValue = seg.f;
+                    else if (mode === 'flow') activeLayerValue = seg.flow;
+                    else if (mode === 'width') activeLayerValue = seg.width;
+                    else if (mode === 'height') activeLayerValue = seg.height;
+                    else if (mode === 'temp') activeLayerValue = seg.temp;
+                }
+
+                // ThreeJS Coords (X -> X, Y -> -Z, Z -> Y)
+                positions.push(seg.x1, seg.z1, -seg.y1); 
+                positions.push(seg.x2, seg.z2, -seg.y2);
+
+                // Calculate fake lighting/shading based on segment normal
+                const dx = seg.x2 - seg.x1;
+                const dy = seg.y2 - seg.y1;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                let shade = 1.0;
+                
+                if (len > 0) {
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    // Fake light vector coming from (-0.707, 0.707)
+                    const dot = Math.abs(nx * -0.707 + ny * 0.707);
+                    // Map dot product from [0, 1] to [0.4, 1.0] for ambient + diffuse light
+                    shade = 0.4 + 0.6 * dot;
+                }
+
+                if (mode === 'type') {
+                    if (seg.type === 'vase') {
+                        colors.push(vaseColor.r * shade, vaseColor.g * shade, vaseColor.b * shade);
+                        colors.push(vaseColor.r * shade, vaseColor.g * shade, vaseColor.b * shade);
+                    } else {
+                        colors.push(baseColor.r * shade, baseColor.g * shade, baseColor.b * shade);
+                        colors.push(baseColor.r * shade, baseColor.g * shade, baseColor.b * shade);
+                    }
+                } else {
+                    let ratio = 0;
+                    if (mode === 'speed') ratio = seg.f / maxes.f;
+                    else if (mode === 'flow') ratio = seg.flow / maxes.flow;
+                    else if (mode === 'width') ratio = seg.width / maxes.width;
+                    else if (mode === 'height') ratio = seg.height / maxes.height;
+                    else if (mode === 'temp') {
+                        let tRange = maxes.temp - window.previewMins.temp;
+                        if (tRange <= 0) tRange = 1;
+                        ratio = (seg.temp - window.previewMins.temp) / tRange;
+                    }
+
+                    ratio = Math.max(0, Math.min(1, ratio));
+                    // Hue: 0.66 (Blue) to 0.0 (Red)
+                    const hue = 0.66 - (ratio * 0.66);
+                    const color = new THREE.Color().setHSL(hue, 1.0, 0.5);
+                    
+                    colors.push(color.r * shade, color.g * shade, color.b * shade);
+                    colors.push(color.r * shade, color.g * shade, color.b * shade);
+                }
+            }
+            
+            // Update UI Metric
+            const currentMetricValueEl = document.getElementById('currentMetricValue');
+            if (currentMetricValueEl) {
+                if (mode === 'type' || activeLayerValue === null) {
+                    currentMetricValueEl.textContent = '--';
+                } else {
+                    if (mode === 'speed') currentMetricValueEl.textContent = `Selected Layer: ${Math.round(activeLayerValue / 60)} mm/s`;
+                    else if (mode === 'flow') currentMetricValueEl.textContent = `Selected Layer: ${activeLayerValue.toFixed(3)} mm³/mm`;
+                    else if (mode === 'width') currentMetricValueEl.textContent = `Selected Layer: ${activeLayerValue.toFixed(2)} mm`;
+                    else if (mode === 'height') currentMetricValueEl.textContent = `Selected Layer: ${activeLayerValue.toFixed(2)} mm`;
+                    else if (mode === 'temp') currentMetricValueEl.textContent = `Selected Layer: ${Math.round(activeLayerValue)} °C`;
+                }
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                linewidth: 1,
+                opacity: 1.0,
+                transparent: false
+            });
+
+            currentLineMesh = new THREE.LineSegments(geometry, material);
+            scene.add(currentLineMesh);
+        }
+
+        // --- Interaction Listeners ---
+        
+        colorModeSelect.addEventListener('change', () => {
+            if (colorModeSelect.value === 'type') {
+                legendType.classList.remove('hidden');
+                legendGradient.classList.add('hidden');
+            } else {
+                legendType.classList.add('hidden');
+                legendGradient.classList.remove('hidden');
+                legendGradient.classList.add('flex');
+                
+                if (colorModeSelect.value === 'speed') {
+                    legendMin.textContent = "Slow"; legendMax.textContent = "Fast";
+                } else if (colorModeSelect.value === 'flow') {
+                    legendMin.textContent = "Low Flow"; legendMax.textContent = "High Flow";
+                } else if (colorModeSelect.value === 'width') {
+                    legendMin.textContent = "Thin"; legendMax.textContent = "Thick";
+                } else if (colorModeSelect.value === 'height') {
+                    legendMin.textContent = "Fine"; legendMax.textContent = "Coarse";
+                } else if (colorModeSelect.value === 'temp') {
+                    legendMin.textContent = "Cool"; legendMax.textContent = "Hot";
+                }
+            }
+            renderGeometry();
+        });
+
+        zSlider.addEventListener('input', () => {
+            zSliderValue.textContent = `${parseFloat(zSlider.value).toFixed(2)}mm`;
+            renderGeometry();
+        });
+
+        function downloadRawGcode() {
+            if (!splicedGcodeText) return;
+            const blob = new Blob([splicedGcodeText], { type: 'text/plain' });
+            triggerDownload(blob, "kintsugi_print.gcode");
+        }
+
+        async function download3mfGcode() {
+            if (!splicedGcodeText) return;
+            
+            let zip;
+            if (template3mfFile && templateGcodePath) {
+                zip = new JSZip();
+                await zip.loadAsync(template3mfFile);
+                zip.file(templateGcodePath, splicedGcodeText);
+            } else {
+                zip = new JSZip();
+                const contentTypesXML = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+  <Default Extension="gcode" ContentType="text/plain"/>
+</Types>`;
+                zip.file("[Content_Types].xml", contentTypesXML);
+                zip.file("Metadata/plate_1.gcode", splicedGcodeText);
+                showToast("Thumbnails missing: Export as .gcode.3mf directly from your slicer next time for LAN mode support.", "info");
+            }
+
+            const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+            triggerDownload(blob, "kintsugi_print.gcode.3mf");
+        }
+
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        processBtn.addEventListener('click', processFiles);
+        downloadBtn.addEventListener('click', downloadRawGcode);
+        download3mfBtn.addEventListener('click', download3mfGcode);
+
+    </script>
+</body>
+</html>
