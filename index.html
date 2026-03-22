@@ -111,7 +111,7 @@
                 <section>
                     <h3 class="text-base md:text-lg font-bold text-amber-400 mb-2 border-b border-gray-700 pb-1">Using the App</h3>
                     <ul class="list-disc pl-5 space-y-2 text-xs md:text-sm">
-                        <li><strong>Identify the Transition:</strong> Export your standard Base file. Upload it here. The app will scan it. Use the Z-slider to find the exact height where you want the vase to begin.</li>
+                        <li><strong>Export the Base:</strong> Export your standard Base file. Upload it here. The app will scan it. Use the Z-slider to find the exact height where you want the vase to begin.</li>
                         <li><strong>Export the Vase:</strong> Go back to your slicer, turn on "Spiral Vase Mode", slice, and export. <em>Do not move the model on the build plate between exports!</em>
                             <img src="images/smooth-spiral.png" alt="Smooth Spiral Setting" class="w-full max-w-sm mt-3 rounded border border-gray-600 shadow-md">
                         </li>
@@ -838,7 +838,14 @@
                 zHintText.textContent = "Scanning file for layer heights...";
                 zHintText.className = "text-gray-400";
                 zHintAction.classList.add('hidden');
+                
+                loadingOverlay.classList.remove('hidden');
+                loadingText.textContent = "Parsing Base File...";
+                downloadContainer.classList.add('hidden');
+                statsPanel.classList.add('hidden');
+
                 try {
+                    await new Promise(r => setTimeout(r, 50));
                     const text = await extractTextFromFile(e.target.files[0]);
                     const zSet = new Set();
                     const lines = text.split('\n');
@@ -853,9 +860,18 @@
                         showToast("Failed to parse layer heights. Make sure 'Verbose G-code' is enabled in your slicer settings.", "error");
                     } else {
                         updateZHint();
+                        loadingText.textContent = "Generating 3D Preview...";
+                        await new Promise(r => setTimeout(r, 50));
+                        
+                        // Render the base file immediately so the user can visualize the cut
+                        buildPreviewData(text, 99999);
+                        showToast("Base file loaded! Use the Z-slice slider to pick your transition height.", "success");
                     }
                 } catch (err) {
                     zHintText.textContent = "Failed to parse layers for snapping.";
+                    console.error(err);
+                } finally {
+                    loadingOverlay.classList.add('hidden');
                 }
             }
         });
