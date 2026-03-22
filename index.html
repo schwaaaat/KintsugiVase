@@ -528,10 +528,11 @@
         if (localStorage.getItem('kintsugi_bedY')) bedYInput.value = localStorage.getItem('kintsugi_bedY');
         if (localStorage.getItem('kintsugi_density')) matDensityInput.value = localStorage.getItem('kintsugi_density');
         
-        if (localStorage.getItem('kintsugi_useSpeedTuning') === 'true') {
-            useSpeedTuning.checked = true;
-            speedTuningControls.classList.remove('opacity-50', 'pointer-events-none');
-        }
+        // Force Speed Tuning off by default to prevent accidental slowdowns on new sessions
+        useSpeedTuning.checked = false;
+        speedTuningControls.classList.add('opacity-50', 'pointer-events-none');
+        localStorage.removeItem('kintsugi_useSpeedTuning'); // Clear any old cached data
+        
         if (localStorage.getItem('kintsugi_transSpeed')) transSpeedInput.value = localStorage.getItem('kintsugi_transSpeed');
         if (localStorage.getItem('kintsugi_rampMode')) rampModeInput.value = localStorage.getItem('kintsugi_rampMode');
         if (localStorage.getItem('kintsugi_transLayersBefore')) transLayersBefore.value = localStorage.getItem('kintsugi_transLayersBefore');
@@ -568,7 +569,7 @@
             localStorage.setItem('kintsugi_bedY', bedYInput.value);
             localStorage.setItem('kintsugi_density', matDensityInput.value);
             
-            localStorage.setItem('kintsugi_useSpeedTuning', useSpeedTuning.checked);
+            // Speed tuning toggle is deliberately not saved here so it always defaults to off
             localStorage.setItem('kintsugi_transSpeed', transSpeedInput.value);
             localStorage.setItem('kintsugi_rampMode', rampModeInput.value);
             localStorage.setItem('kintsugi_transLayersBefore', transLayersBefore.value);
