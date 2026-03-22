@@ -205,11 +205,11 @@
                         <div id="wallThicknessControls" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-opacity">
                             <div>
                                 <label class="block text-[10px] font-medium text-gray-400 mb-1">Vase Sliced Width</label>
-                                <input type="number" id="slicedWidth" value="0.42" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-amber-400 text-sm font-mono cursor-not-allowed" title="Automatically detected from your Vase G-code file" readonly>
+                                <input type="number" id="slicedWidth" value="0.42" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-gray-400 text-sm font-mono cursor-not-allowed" title="Automatically detected from your Vase G-code file" readonly>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-medium text-amber-400 mb-1">Target Vase Width</label>
-                                <input type="number" id="targetWidth" value="0.60" step="0.01" class="w-full bg-gray-800 border border-amber-500/50 rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-amber-400 font-bold" title="We will calculate the extra flow needed to inflate the wall to this exact size">
+                                <label class="block text-[10px] font-medium text-gray-400 mb-1">Target Vase Width</label>
+                                <input type="number" id="targetWidth" value="0.60" step="0.01" class="w-full bg-gray-800 border border-gray-500/50 rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-gray-400 font-bold" title="We will calculate the extra flow needed to inflate the wall to this exact size">
                             </div>
                         </div>
                     </div>
@@ -1589,8 +1589,6 @@
                 let currentY = yMatch ? parseFloat(yMatch[1]) : lastY;
                 let currentZ = zMatch ? parseFloat(zMatch[1]) : lastZ;
 
-                if (currentZ > maxRenderZ) maxRenderZ = currentZ;
-
                 let eDelta = 0;
                 if (eMatch) {
                     let eRaw = parseFloat(eMatch[1]);
@@ -1599,6 +1597,9 @@
                 }
 
                 if (eDelta > 0) {
+                    // FIX: Only update maxRenderZ for actual extrusion moves, completely ignoring end-gcode bed drops!
+                    if (currentZ > maxRenderZ) maxRenderZ = currentZ;
+
                     // FIX: Only track max feedrate for actual extrusion moves!
                     // This stops lightning-fast travel moves (e.g., F30000) from ruining the color scale!
                     if (currentF > window.previewMaxes.f) window.previewMaxes.f = currentF;
@@ -1647,10 +1648,11 @@
             if (window.previewMins.temp === 999) window.previewMins.temp = 0;
 
             // Setup Slider
-            zSlider.max = Math.ceil(maxRenderZ);
+            const finalMaxZ = Math.ceil(maxRenderZ);
+            zSlider.max = finalMaxZ;
             zSlider.step = 0.01;
-            zSlider.value = Math.ceil(maxRenderZ);
-            zSliderValue.textContent = `${zSlider.value}mm`;
+            zSlider.value = finalMaxZ;
+            zSliderValue.textContent = `${finalMaxZ}mm`;
             
             updateSliderIndicator();
             renderGeometry();
