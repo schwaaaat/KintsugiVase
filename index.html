@@ -11,7 +11,8 @@
 </head>
 <body class="bg-gray-900 text-gray-100 flex flex-col font-sans overflow-hidden" style="height: 100vh; height: 100dvh;">
 
-    <div id="toast" class="fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 border-l-4 border-amber-500 text-white px-5 py-4 rounded shadow-2xl">
+    <!-- Toast Notification System -->
+    <div id="toast" class="fixed bottom-20 md:bottom-24 right-4 md:right-6 z-[100] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 border-l-4 border-amber-500 text-white px-5 py-4 rounded shadow-2xl">
         <svg id="toastIcon" class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <div id="toastMessage" class="text-sm font-medium">Notification message here</div>
     </div>
@@ -457,7 +458,7 @@
             msgEl.textContent = message;
             
             // Reset classes
-            toast.className = "fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 px-5 py-4 rounded shadow-2xl border-l-4";
+            toast.className = "fixed bottom-20 md:bottom-24 right-4 md:right-6 z-[100] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 px-5 py-4 rounded shadow-2xl border-l-4";
             
             if (type === 'error') {
                 toast.classList.add('border-red-500');
