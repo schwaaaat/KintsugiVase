@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KintsugiVase Splicer by schwaaaat</title>
+    <script id="appViewportHeightFix">
+        (function () {
+            function setAppVH() {
+                var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+                document.documentElement.style.setProperty('--app-vh', (h * 0.01) + 'px');
+            }
+            setAppVH();
+            window.addEventListener('resize', setAppVH);
+            window.addEventListener('orientationchange', setAppVH);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setAppVH);
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="./src/ui/style.css">
+</head>
+<body class="bg-gray-900 text-gray-100 flex flex-col font-sans overflow-hidden" style="height: 100vh; height: calc(var(--app-vh, 1vh) * 100);">
+
+    <!-- Toast Notification System -->
+    <div id="toast" class="fixed top-20 left-1/2 z-[100] max-w-[calc(100vw-2rem)] -translate-x-1/2 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-gray-800 border-l-4 border-amber-500 text-white px-5 py-4 rounded shadow-2xl">
+        <svg id="toastIcon" class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div id="toastMessage" class="text-sm font-medium">Notification message here</div>
+    </div>
+
+    <header class="bg-gray-800 p-3 md:p-4 shadow-md flex justify-between items-center z-10 border-b border-gray-700 relative">
+        <div class="flex items-center gap-3 md:gap-4">
+            <svg id="mainLogo" class="w-8 h-8 md:w-10 md:h-10 drop-shadow-md cursor-pointer flex-shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" data-repair-state="intact">
+                <defs>
+                    <clipPath id="logoTopClip"><path d="M0 0H100V58L82 58L68 64L50 56L35 66L18 60L0 60Z"/></clipPath>
+                    <clipPath id="logoBottomClip"><path d="M0 60L18 60L35 66L50 56L68 64L82 58L100 58V100H0Z"/></clipPath>
+                </defs>
+                <g class="logo-top" clip-path="url(#logoTopClip)">
+                    <path d="M35 15C45 15 45 30 30 50C26 55.3 23.3 60.5 23 63C20 80 35 90 40 90H60C65 90 80 80 77 63C76.7 60.5 74 55.3 70 50C55 30 55 15 65 15Z" fill="#3b82f6"/>
+                </g>
+                <path class="logo-bottom" clip-path="url(#logoBottomClip)" d="M35 15C45 15 45 30 30 50C26 55.3 23.3 60.5 23 63C20 80 35 90 40 90H60C65 90 80 80 77 63C76.7 60.5 74 55.3 70 50C55 30 55 15 65 15Z" fill="#3b82f6"/>
+                <g class="logo-kintsugi">
+                    <path d="M18 60L35 66L50 56L68 64L82 58" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <path d="M50 56L54 74" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <circle cx="55" cy="78" r="2" fill="#fbbf24"/>
+                </g>
+            </svg>
+            <div>
+                <h1 class="text-lg md:text-xl font-bold text-white tracking-wide leading-tight">Kintsugi<span class="text-amber-400">Vase</span> Splicer</h1>
+                <p class="text-[10px] md:text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+                    <span class="hidden md:inline">Universal Toolpath Editor</span> 
+                    <button id="guideBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-2 py-0.5 rounded text-[9px] md:text-[10px] uppercase tracking-wider font-bold transition-colors shadow">Help <span class="hidden sm:inline">& Settings Guide</span></button>
+                    <button id="walkthroughBtn" class="bg-amber-700/70 hover:bg-amber-600 text-amber-100 px-2 py-0.5 rounded text-[9px] md:text-[10px] uppercase tracking-wider font-bold transition-colors shadow">Walkthrough</button>
+                </p>
+            </div>
+        </div>
+        <div id="downloadContainer" class="hidden flex gap-2">
+            <button id="downloadBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded text-xs md:text-sm font-semibold transition-colors shadow-lg">
+                Save <span class="hidden md:inline">.gcode</span>
+            </button>
+            <button id="download3mfBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded text-xs md:text-sm font-semibold transition-colors shadow-lg" title="Uses original file as template for perfect LAN import">
+                Save <span class="hidden md:inline">.gcode</span>.3mf
+            </button>
+        </div>
+    </header>
+
+    <div id="guideModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900">
+                <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    Slicer Setup & Kintsugi Guide
+                </h2>
+                <button id="closeGuideBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-4 md:p-6 overflow-y-auto space-y-6 text-sm text-gray-300 custom-scrollbar">
+                <section class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white mb-1">What KintsugiVase does</h3>
+                        <p class="text-xs md:text-sm text-gray-300">It combines two slices of the same, unmoved model: a normal multi-wall <strong class="text-blue-300">Standard base</strong> and a continuous <strong class="text-orange-300">Vase</strong> slice. You choose each handoff height and the app generates aligned transition G-code plus a complete preview.</p>
+                    </div>
+                    <button id="startWalkthroughBtn" type="button" class="flex-shrink-0 rounded bg-amber-600 hover:bg-amber-500 px-4 py-2 font-bold text-white shadow">Start guided walkthrough</button>
+                </section>
+
+                <section class="bg-gray-900 border border-amber-600/50 rounded-lg p-4 md:p-5">
+                    <h3 class="text-base md:text-lg font-bold text-amber-400 mb-3">Required slicer preparation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div><h4 class="font-bold text-white mb-1">Both files</h4><ul class="list-disc pl-5 space-y-1 text-xs md:text-sm text-gray-400"><li>Use the same model, plate position, scale, layer height, nozzle, and origin.</li><li>Enable <strong>Verbose G-code</strong>. In Orca/Bambu: Others → G-code output → Verbose G-code.</li><li>Use an aligned/back seam. Keep the outer profile continuous near every junction.</li><li>Prefer <code>.gcode.3mf</code> so thumbnails and LAN-print metadata survive export.</li></ul></div>
+                        <div><h4 class="font-bold text-white mb-1">Slice-specific settings</h4><ul class="list-disc pl-5 space-y-1 text-xs md:text-sm text-gray-400"><li><strong>Standard base:</strong> normal walls/infill; concentric top surfaces give the vase wall a continuous landing path.</li><li><strong>Vase:</strong> enable Spiral Vase and, when available, Smooth Spiral.</li><li>Choose conservative wall speed, temperature, and cooling for the first physical test.</li></ul></div>
+                    </div>
+                </section>
+
+                <section id="helpWorkflow">
+                    <h3 class="text-base font-bold text-amber-400 mb-2 border-b border-gray-700 pb-1">Workflow, order, and layers</h3>
+                    <ol class="list-decimal pl-5 space-y-2 text-xs md:text-sm"><li>Drop the two matching files into their boxes, or choose a bundled demo pair and click <strong>Load pair</strong>.</li><li>Choose whether the print begins with Base or Vase. Each transition alternates the source, so two heights can produce Base → Vase → Base or Vase → Base → Vase.</li><li>Add transition heights. Typed values snap to real base layers; Up/Down moves to adjacent layers. The vertical Z control and <strong>Set Trans.</strong> set the selected row.</li><li>Click <strong>Splice & Generate Preview</strong>. If a direction change makes a layer unusable, the app searches for the nearest valid layer and reports the correction.</li><li>Inspect every junction, then save plain <code>.gcode</code> or metadata-preserving <code>.gcode.3mf</code>.</li></ol>
+                </section>
+
+                <section id="helpTransitionEngine" class="bg-gray-900 border border-gray-700 rounded-lg p-4">
+                    <h3 class="text-base font-bold text-amber-400 mb-2">Transition Engine settings</h3>
+                    <dl class="grid grid-cols-1 md:grid-cols-[12rem_1fr] gap-x-4 gap-y-2 text-xs md:text-sm"><dt class="font-bold text-white">Level Bonding / Support Loop</dt><dd>Base→Vase prints a complete flat outer-wall loop before the spiral climbs. Vase→Base flattens the final spiral turn and adds a complete support rim under the incoming base layer.</dd><dt class="font-bold text-white">Hop / Travel / Prime speeds</dt><dd>Fallback movement values used only when a direct matched handoff cannot be made. Strict matched planar junctions avoid XY travel and retraction at the seam.</dd><dt class="font-bold text-white">Flow Taper</dt><dd>Ramps extrusion from the chosen starting percentage to full flow across the specified contour distance, reducing a sudden bead-size step.</dd><dt class="font-bold text-white">Seam Matching</dt><dd>Relocates the handoff to a common point on both paths. Search Layers Before/After control the vertical search window; Base→Vase remains forward-only to prevent duplicate material below the boundary.</dd><dt class="font-bold text-white">Scarf Lap Joint</dt><dd>Overlaps complementary tapering beads across the selected distance to strengthen and hide the seam.</dd><dt class="font-bold text-white">Tangential Lead-In</dt><dd>Approaches from inside the part and wipes tangentially onto the perimeter. Lead-In Offset controls that inside distance.</dd></dl>
+                </section>
+
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-gray-700 rounded-lg p-4"><h3 class="font-bold text-blue-300 mb-2">Flow and wall controls</h3><ul class="list-disc pl-5 space-y-1 text-xs md:text-sm"><li><strong>Vase Flow Multiplier:</strong> scales all vase extrusion.</li><li><strong>Wall Thickness Tuning:</strong> detects the sliced vase width and scales flow toward Target Vase Width. Confirm the requested width is realistic for the nozzle.</li></ul></div>
+                    <div class="border border-gray-700 rounded-lg p-4"><h3 class="font-bold text-purple-300 mb-2">Advanced tuning</h3><ul class="list-disc pl-5 space-y-1 text-xs md:text-sm"><li><strong>Speed Tuning:</strong> applies Slow Speed as a step or smooth ramp across the chosen layers before/after.</li><li><strong>Transition Temp/Fan:</strong> overrides nozzle temperature or fan only around the junction; blank means source defaults.</li><li><strong>Bed X/Y:</strong> sizes the preview grid. <strong>Material Density</strong> affects only the estimated weight.</li></ul></div>
+                </section>
+
+                <section><h3 class="text-base font-bold text-amber-400 mb-2 border-b border-gray-700 pb-1">Per-junction editing and custom G-code</h3><p class="text-xs md:text-sm mb-2">Select a transition row, then open <strong>Selected Junction</strong>. Each junction can override shared transition values. The generated block is inspectable; advanced users may insert code before/after it or replace it. Reserved Kintsugi markers are protected. Custom commands are executed by the printer, so review the final preview and exported text.</p></section>
+
+                <section><h3 class="text-base font-bold text-amber-400 mb-2 border-b border-gray-700 pb-1">Preview controls</h3><ul class="list-disc pl-5 space-y-1 text-xs md:text-sm"><li><strong>Color Mode:</strong> Base/Vase, speed, flow, width, layer height, or temperature. The selected mode persists after resplicing.</li><li><strong>Vertical Z:</strong> filters the preview by layer. Mouse wheel and Up/Down step layers.</li><li><strong>LayerBuild:</strong> reveals moves within only the selected layer; Left/Right steps those moves.</li><li><strong>Playback:</strong> animates extrusion at selectable speed. <strong>Inspect Junction</strong> zooms to the selected handoff and plays it.</li><li><strong>Camera:</strong> left-drag rotates, right/middle-drag pans, wheel zooms, and Home restores the view.</li></ul></section>
+
+                <section class="bg-gray-900 border border-gray-700 rounded-lg p-4"><h3 class="font-bold text-white mb-2">Errors and validation</h3><ul class="list-disc pl-5 space-y-1 text-xs md:text-sm text-gray-400"><li><strong>No layers:</strong> re-export with verbose G-code.</li><li><strong>No complete outer contour:</strong> check aligned seams, continuous geometry, and feature comments.</li><li><strong>Files never reach Z:</strong> choose a height present in both slices.</li><li><strong>Transitions too close:</strong> leave enough vertical space for complete reconstructed turns.</li><li>Software checks geometry and G-code consistency; adhesion and watertightness require a supervised print and leak test.</li></ul></section>
+            </div>
+        </div>
+    </div>
+
+    <div id="walkthroughOverlay" class="fixed inset-0 z-[80] hidden" role="dialog" aria-modal="true" aria-labelledby="walkthroughTitle">
+        <div id="walkthroughHighlight" class="fixed rounded-lg border-2 border-amber-400 pointer-events-none shadow-[0_0_0_9999px_rgba(0,0,0,0.68),0_0_22px_rgba(251,191,36,0.9)] transition-all duration-200"></div>
+        <div id="walkthroughCard" class="fixed bottom-4 left-1/2 z-[90] w-[min(92vw,28rem)] -translate-x-1/2 rounded-lg border border-amber-500/70 bg-gray-900 p-4 shadow-2xl">
+            <div class="flex items-start justify-between gap-3"><div><p id="walkthroughProgress" class="text-[10px] font-bold uppercase tracking-wider text-amber-400"></p><h2 id="walkthroughTitle" class="mt-1 text-base font-bold text-white"></h2></div><button id="walkthroughCloseBtn" type="button" class="text-gray-400 hover:text-white" aria-label="Close walkthrough">✕</button></div>
+            <p id="walkthroughText" class="mt-2 text-xs md:text-sm leading-relaxed text-gray-300"></p>
+            <div class="mt-4 flex items-center justify-between gap-2"><button id="walkthroughPrevBtn" type="button" class="rounded border border-gray-600 px-3 py-1.5 text-xs font-bold text-gray-300 hover:bg-gray-800 disabled:opacity-40">Back</button><button id="walkthroughNextBtn" type="button" class="rounded bg-amber-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-amber-500">Next</button></div>
+        </div>
+    </div>
+
+    <div id="disclaimerModal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-gray-800 border-2 border-red-600/50 rounded-lg shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+            <div class="p-3 md:p-4 border-b border-gray-700 bg-gray-900 flex items-center gap-3">
+                <svg class="w-6 h-6 md:w-7 md:h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <h2 class="text-lg md:text-xl font-bold text-white">Warning & Disclaimer</h2>
+            </div>
+            <div class="p-4 md:p-6 space-y-4 text-gray-300 text-xs md:text-sm">
+                <p>Generating and executing custom, spliced G-code can result in unexpected toolhead movements.</p>
+                <p><strong>Use this tool entirely at your own risk.</strong> The creator assumes absolutely no responsibility for any damage to your 3D printer, failed prints, wasted filament, or any other negative outcomes resulting from the use of this software.</p>
+                <p>Please refer to the Setup Guide and <em>always</em> closely supervise your 3D printer during the transition layers when testing new files.</p>
+            </div>
+            <div class="p-3 md:p-4 border-t border-gray-700 bg-gray-900 flex justify-end">
+                <button id="acceptDisclaimerBtn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded transition-colors text-sm md:text-base">
+                    I Understand and Accept
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <aside class="w-full flex-1 min-h-0 md:flex-none md:w-[360px] md:h-full bg-gray-800 border-t md:border-t-0 md:border-r border-gray-700 z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.2)] md:shadow-lg relative flex-shrink-0 order-2 md:order-1 flex flex-col">
+            <div id="sidebarScroll" class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 pb-4 md:p-5 flex flex-col gap-4">
+                <div class="bg-amber-900/30 border border-amber-500/50 p-2 md:p-3 rounded flex-shrink-0">
+                    <p class="text-[10px] md:text-xs text-amber-200 leading-tight">
+                        <strong>Tip:</strong> Export files as <b>.gcode.3mf</b> to preserve thumbnails for Bambu LAN printing.
+                    </p>
+                </div>
+
+                <div class="space-y-3 flex-shrink-0">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-[10px] text-gray-500 leading-tight">Use your own sliced pair, or load a bundled pair.</p>
+                        <div class="flex flex-shrink-0 items-center gap-1">
+                            <select id="demoSetSelect" class="rounded border border-gray-600 bg-gray-800 px-1.5 py-1 text-[10px] text-gray-200 focus:border-amber-400 focus:outline-none" title="Choose a paired Standard base and Vase demo set">
+                                <option value="1">Demo pair 1</option>
+                                <option value="2">Demo pair 2</option>
+                            </select>
+                            <button id="loadDemoBtn" type="button" class="rounded border border-amber-600/70 bg-amber-900/30 px-2 py-1 text-[10px] font-bold text-amber-300 transition-colors hover:border-amber-400 hover:bg-amber-900/60 disabled:cursor-wait disabled:opacity-60" title="Load both the Standard base and Vase files from the selected pair">
+                                Load pair
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs md:text-sm font-medium text-gray-300 mb-1">1. Standard Base Print</label>
+                        <div id="dropBase" class="border-2 border-dashed border-gray-600 rounded-lg p-3 md:p-4 text-center hover:bg-gray-700 transition-colors cursor-pointer relative bg-gray-900/50">
+                            <input type="file" id="fileBase" accept=".gcode,.gcode.3mf,.3mf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select or drag Base file here"/>
+                            <div class="pointer-events-none flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <span id="labelBase" class="text-xs md:text-sm text-gray-300 font-medium truncate w-full px-2">Drop base file or click</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs md:text-sm font-medium text-gray-300 mb-1">2. Vase Mode Top Print</label>
+                        <div id="dropVase" class="border-2 border-dashed border-gray-600 rounded-lg p-3 md:p-4 text-center hover:bg-gray-700 transition-colors cursor-pointer relative bg-gray-900/50">
+                            <input type="file" id="fileVase" accept=".gcode,.gcode.3mf,.3mf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select or drag Vase file here"/>
+                            <div class="pointer-events-none flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <span id="labelVase" class="text-xs md:text-sm text-gray-300 font-medium truncate w-full px-2">Drop vase file or click</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-700 rounded-lg p-3 flex-shrink-0">
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-300 mb-1.5">Bottom Section (Initial Mode)</label>
+                        <div class="grid grid-cols-2 gap-1.5 bg-gray-800 p-1 rounded border border-gray-700" role="group" aria-label="Bottom section mode selection">
+                            <button type="button" id="startModeBaseBtn" class="py-1 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition-all bg-blue-600 text-white shadow" title="First section at the bed is standard solid infill / base">
+                                <span class="w-2 h-2 rounded-full bg-white/90"></span>
+                                <span>Base (Solid)</span>
+                            </button>
+                            <button type="button" id="startModeVaseBtn" class="py-1 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-gray-400 hover:text-gray-200" title="First section at the bed is spiral vase mode">
+                                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                                <span>Vase Mode</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-medium text-gray-300">Transition Heights (Z mm)</label>
+                        <button id="addTransitionBtn" type="button" class="text-[10px] font-bold text-amber-400 hover:text-amber-300 hover:underline" title="Add another Z height where the print switches mode">+ Add Transition</button>
+                    </div>
+                    <div id="transitionsList" class="flex flex-col gap-1 mb-2"></div>
+                    <p id="transitionModeDesc" class="text-[9px] text-gray-500 mb-3 leading-snug">Print alternates Base → Vase → Base → … at each height, sorted low to high. Click a row to select it (drives the slider marker, Set Trans., and arrow-key snapping).</p>
+
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Vase Flow Multiplier</label>
+                        <input type="number" id="flowMultiplier" value="1.0" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400 transition-colors" title="Global flow multiplier for the vase section (e.g. 1.05 for +5%)">
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-[10px] text-gray-400 flex items-center justify-between">
+                            <span id="zHintText">Upload base file to scan layers.</span>
+                            <span id="zHintAction" class="text-amber-400 font-bold cursor-pointer hover:underline hidden"></span>
+                        </p>
+                    </div>
+
+                    <div class="border-t border-gray-700 pt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="useWallThickness" class="text-xs font-bold text-gray-300 cursor-pointer">Enable Wall Thickness Tuning</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useWallThickness" class="sr-only peer">
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <div id="wallThicknessControls" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-opacity">
+                            <div>
+                                <label class="block text-[10px] font-medium text-gray-400 mb-1">Vase Sliced Width</label>
+                                <input type="number" id="slicedWidth" value="0.42" step="0.01" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-gray-400 text-sm font-mono cursor-not-allowed" title="Automatically detected from your Vase G-code file" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-medium text-gray-400 mb-1">Target Vase Width</label>
+                                <input type="number" id="targetWidth" value="0.60" step="0.01" class="w-full bg-gray-800 border border-gray-500/50 rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-gray-400 font-bold" title="We will calculate the extra flow needed to inflate the wall to this exact size">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Settings Accordions -->
+                <!-- Wrapper divs carry border/rounded/overflow-hidden and flex-shrink-0:
+                     In CSS Flexbox (CSS Flexible Box Layout Module Level 1 §4.5), flex items with
+                     `overflow: visible` default to `min-height: auto` (content-based minimum size),
+                     preventing them from shrinking below content size. However, flex items with
+                     `overflow: hidden` have their automatic minimum size set to 0. Inside a constrained
+                     flex column container (#sidebarScroll with `flex-1 min-h-0 flex flex-col`),
+                     any negative free space (which occurs at 100%+ zoom when contents exceed the viewport)
+                     causes flexbox to shrink all `overflow-hidden` items all the way to 0 (plus 2px border),
+                     clipping their entire contents away. Adding `flex-shrink-0` prevents flexbox shrinkage
+                     and ensures the scrollable container scrolls all items at their natural full height. -->
+                <div class="rounded-lg border border-amber-700/40 overflow-hidden flex-shrink-0">
+                <details class="group bg-gray-900/50" open>
+                    <summary class="p-2 md:p-3 text-xs md:text-sm font-medium text-amber-300 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center select-none">
+                        Transition Engine <span class="text-[9px] font-normal text-gray-500 ml-1 normal-case">(seam mechanics)</span>
+                        <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-3 bg-gray-800">
+                        <p class="text-[10px] text-gray-500 leading-snug">Controls the physical hand-off and full-perimeter bond at each splice seam.</p>
+
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="usePlanarTransition" class="text-xs font-bold text-gray-300 cursor-pointer" title="The flat turn follows the base outer wall. Base→Vase climbs only after that full loop; Vase→Base finishes on a level support rim beneath the incoming wall.">Level Bonding / Support Loop</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="usePlanarTransition" class="sr-only peer" checked>
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Extra Z clearance added above the higher of Transition Z / the vase resume height, during the hop/travel move">Hop Height (mm)</label>
+                                <input type="number" id="hopHeight" value="0.4" step="0.05" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Feedrate for the non-extruding hop/XY/descend moves">Travel Speed (mm/min)</label>
+                                <input type="number" id="travelSpeedInput" value="3000" step="100" min="1" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Feedrate for the retract/un-retract prime moves">Prime Speed (mm/min)</label>
+                                <input type="number" id="primeSpeedInput" value="1800" step="100" min="1" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-1 border-t border-gray-700 pt-3">
+                            <label for="useFlowTaper" class="text-xs font-bold text-gray-300 cursor-pointer" title="Linearly ramps extrusion flow in over an arc-length distance after the seam, instead of stepping to full flow instantly">Enable Flow Taper</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useFlowTaper" class="sr-only peer" checked>
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <div id="flowTaperControls" class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Cumulative XY arc length after the seam over which flow ramps from Taper Start Flow up to 100%">Taper Distance (mm)</label>
+                                <input type="number" id="taperDistance" value="15" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Flow percentage at the very start of the taper zone, ramping linearly to 100%">Taper Start Flow (%)</label>
+                                <input type="number" id="taperStartPct" value="25" step="5" min="0" max="100" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-1 border-t border-gray-700 pt-3">
+                            <label for="useSeamMatch" class="text-xs font-bold text-gray-300 cursor-pointer" title="When the vase wall's spiral path passes close enough to the base outer wall's seam point near a transition, skip the retract/hop/prime dance entirely and hand off with one short direct (non-retracted) travel move instead. Falls back to the full seam below when nothing close enough is found.">Enable Seam Matching</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useSeamMatch" class="sr-only peer" checked>
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <div id="seamMatchControls" class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="How many extra vase layer-heights BELOW the transition to search for the closest approach to the base seam point">Search Layers Before</label>
+                                <input type="number" id="seamMatchLayersBefore" value="1" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="How many extra vase layer-heights ABOVE the transition to search for the closest approach to the base seam point">Search Layers After</label>
+                                <input type="number" id="seamMatchLayersAfter" value="1" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+
+                        <!-- Scarf Lap Joint Controls -->
+                        <div class="flex items-center justify-between mb-1 border-t border-gray-700 pt-3">
+                            <label for="useLapJoint" class="text-xs font-bold text-gray-300 cursor-pointer" title="Extends the perimeter loop with a tapering overlap joint (100% → 0%), fused with the incoming section (0% → 100%) to eliminate the seam notch entirely.">Enable Scarf Lap Joint</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useLapJoint" class="sr-only peer" checked>
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <div id="lapJointControls" class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Contour distance along the perimeter over which the two beads taper and overlap">Overlap Distance (mm)</label>
+                                <input type="number" id="lapJointDistance" value="8" step="1" min="1" max="50" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+
+                        <!-- Tangential Lead-In Controls -->
+                        <div class="flex items-center justify-between mb-1 border-t border-gray-700 pt-3">
+                            <label for="useLeadIn" class="text-xs font-bold text-gray-300 cursor-pointer" title="Descends slightly inside the part interior and wipes tangentially onto the outer perimeter, hiding unretract dwell marks and seam pimples.">Enable Tangential Lead-In</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useLeadIn" class="sr-only peer" checked>
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+                        <div id="leadInControls" class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Offset distance inside the part interior for the touchdown descent">Lead-In Offset (mm)</label>
+                                <input type="number" id="leadInDistance" value="1.5" step="0.5" min="0.5" max="10" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+                    </div>
+                </details>
+                </div>
+
+                <div class="rounded-lg border border-gray-700 overflow-hidden flex-shrink-0">
+                <details class="group bg-gray-900/50">
+                    <summary class="p-2 md:p-3 text-xs md:text-sm font-medium text-gray-300 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center select-none">
+                        Advanced Transition Tuning
+                        <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-3 bg-gray-800">
+                        
+                        <!-- Feature Toggle -->
+                        <div class="flex items-center justify-between mb-1 border-b border-gray-700 pb-3">
+                            <label for="useSpeedTuning" class="text-xs font-bold text-gray-300 cursor-pointer">Enable Speed Tuning</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useSpeedTuning" class="sr-only peer">
+                                <div class="w-8 h-4 md:w-9 md:h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 md:after:h-4 md:after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+
+                        <div id="speedTuningControls" class="space-y-3 opacity-50 pointer-events-none transition-opacity">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Feedrate for the transition layers">Slow Speed (mm/s)</label>
+                                    <input type="number" id="transSpeed" value="20" step="1" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="How the speed changes: Instant step or smooth ramp">Ramp Mode</label>
+                                    <select id="rampMode" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                        <option value="step">Step (Instant)</option>
+                                        <option value="ramp" selected>Smooth Ramp</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Number of physical layers to modify BEFORE transition">Layers Before Trans.</label>
+                                    <input type="number" id="transLayersBefore" value="0" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Number of physical layers to modify AFTER transition">Layers After Trans.</label>
+                                    <input type="number" id="transLayersAfter" value="0" step="1" min="0" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 border-t border-gray-700 pt-3 mt-1">
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Leave blank to use defaults from the Vase file">Trans. Temp (°C)</label>
+                                <input type="number" id="transTemp" placeholder="Auto" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-[11px] font-medium text-gray-400 mb-1" title="Fan speed override (0-255). Leave blank for Auto.">Trans. Fan (0-255)</label>
+                                <input type="number" id="transFan" placeholder="Auto" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+                    </div>
+                </details>
+                </div>
+
+                <div class="rounded-lg border border-gray-700 overflow-hidden flex-shrink-0">
+                <details class="group bg-gray-900/50">
+                    <summary class="p-2 md:p-3 text-xs md:text-sm font-medium text-gray-300 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center select-none">
+                        Printer & Material Settings
+                        <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-3 bg-gray-800">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] md:text-xs font-medium text-gray-400 mb-1">Bed X (mm)</label>
+                                <input type="number" id="bedX" value="256" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] md:text-xs font-medium text-gray-400 mb-1">Bed Y (mm)</label>
+                                <input type="number" id="bedY" value="256" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] md:text-xs font-medium text-gray-400 mb-1">Material Density (g/cm³)</label>
+                            <input type="number" id="matDensity" value="1.24" step="0.01" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs md:text-sm focus:outline-none focus:border-amber-400" title="PLA: ~1.24, PETG: ~1.26, ABS: ~1.04">
+                            <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">PLA: ~1.24 | PETG: ~1.26 | ABS: ~1.04</p>
+                        </div>
+                    </div>
+                </details>
+                </div>
+
+                <button id="resetSettingsBtn" type="button" class="w-full flex-shrink-0 rounded border border-red-900/70 bg-red-950/30 px-3 py-2 text-xs font-semibold text-red-300 transition-colors hover:border-red-700 hover:bg-red-900/40 hover:text-red-200" title="Restore every app setting to its shipped default">
+                    Reset All Settings to Defaults
+                </button>
+
+                <div id="statsPanel" class="hidden mt-1 md:mt-2 bg-gray-900 border border-gray-700 rounded p-3 md:p-4 flex-shrink-0">
+                    <h3 class="text-xs md:text-sm font-bold text-gray-300 border-b border-gray-700 pb-2 mb-2">Estimated Output Stats</h3>
+                    <div class="flex justify-between text-xs md:text-sm mb-1">
+                        <span class="text-gray-500">Print Time:</span>
+                        <span id="statTime" class="text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between text-xs md:text-sm mb-1">
+                        <span class="text-gray-500">Filament Weight:</span>
+                        <span id="statWeight" class="text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between text-xs md:text-sm">
+                        <span class="text-gray-500">Total Layers:</span>
+                        <span id="statLayers" class="text-white font-mono">--</span>
+                    </div>
+                </div>
+
+                <div id="statusArea" class="mt-1 md:mt-2 p-2 md:p-3 rounded bg-gray-900 border border-gray-700 text-[10px] md:text-xs font-mono text-gray-400 hidden whitespace-pre-wrap break-words flex-shrink-0">
+                </div>
+
+            </div>
+
+            <!-- Permanently-visible footer bar — sits OUTSIDE the scrollable settings div
+                 above, so the primary action is always reachable without hunting through
+                 accordions for it, no matter how far you've scrolled through options. -->
+            <div class="flex-shrink-0 border-t border-gray-700 bg-gray-800 p-3 md:p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] z-10">
+                <button id="processBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 md:py-3 px-4 rounded transition-colors shadow-lg text-sm md:text-base">
+                    Splice & Generate Preview
+                </button>
+            </div>
+        </aside>
+
+        <!-- Canvas Container -->
+        <div class="w-full h-[40vh] flex-shrink-0 md:h-auto md:flex-1 flex flex-col relative bg-black order-1 md:order-2 z-0">
+            
+            <!-- Canvas Toolbar overlay for Camera Controls -->
+            <div class="absolute top-2 right-2 md:top-4 md:right-4 z-10 flex gap-2">
+                <button id="inspectJunctionBtn" class="bg-amber-600/90 hover:bg-amber-500 text-white px-2.5 py-1.5 md:px-3 md:py-2 rounded shadow-lg transition-colors flex items-center gap-1.5 text-xs font-semibold backdrop-blur" title="Auto-zoom super close to transition junction & play">
+                    <svg class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                    <span>Inspect Junction</span>
+                </button>
+                <button id="homeViewBtn" class="bg-gray-800/80 hover:bg-gray-700 backdrop-blur border border-gray-600 text-white p-2 rounded shadow-lg transition-colors" title="Reset Default View">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </button>
+                <div class="relative group">
+                    <button class="bg-gray-800/80 hover:bg-gray-700 backdrop-blur border border-gray-600 text-gray-300 p-2 rounded shadow-lg transition-colors" title="Camera Controls">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <!-- Wrapper with top-full and pt-2 to bridge the hover gap -->
+                    <div class="absolute right-0 top-full pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                        <div class="bg-gray-800 border border-gray-600 rounded shadow-xl text-xs text-gray-300 p-3">
+                            <p class="font-bold text-white border-b border-gray-600 pb-1 mb-2">Camera Controls</p>
+                            <ul class="space-y-1.5 mb-3">
+                                <li><b class="text-amber-400">Left Click:</b> Rotate</li>
+                                <li><b class="text-amber-400">Right/Mid Click:</b> Pan</li>
+                                <li><b class="text-amber-400">Scroll Wheel:</b> Zoom</li>
+                            </ul>
+                            <div class="border-t border-gray-600 pt-2">
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Zoom Speed</label>
+                                <div class="flex gap-1" id="zoomSpeedControls">
+                                    <button data-speed="0.1" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded py-1 text-[10px] transition-colors border border-transparent">Slow</button>
+                                    <button data-speed="0.35" class="flex-1 bg-amber-600 text-white rounded py-1 text-[10px] transition-colors border border-amber-500 font-bold shadow-inner">Med</button>
+                                    <button data-speed="0.8" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded py-1 text-[10px] transition-colors border border-transparent">Fast</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute top-2 left-2 md:top-4 md:left-4 z-10 bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex flex-col gap-2 min-w-[140px] md:min-w-[200px]">
+                <div>
+                    <label class="block text-[9px] md:text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Color Mode</label>
+                    <select id="colorModeSelect" class="w-full bg-gray-900 border border-gray-600 rounded px-1.5 py-1 text-xs md:text-sm text-white focus:outline-none focus:border-amber-400">
+                        <option value="type">Base vs. Vase</option>
+                        <option value="speed">Feedrate (Speed)</option>
+                        <option value="flow">Flow Rate</option>
+                        <option value="width">Line Width</option>
+                        <option value="height">Layer Height</option>
+                        <option value="temp">Temperature</option>
+                    </select>
+                </div>
+
+                <div id="legendType" class="text-[10px] md:text-xs text-gray-400">
+                    <div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-blue-500 inline-block"></span> Base Infill</div>
+                    <div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-orange-500 inline-block"></span> Vase Mode</div>
+                </div>
+
+                <div id="legendGradient" class="text-[10px] md:text-xs text-gray-400 hidden flex-col gap-1">
+                    <div class="flex justify-between"><span id="legendMin">Slow</span><span id="legendMax">Fast</span></div>
+                    <div class="h-1.5 md:h-2 rounded w-full bg-gradient-to-r from-blue-600 via-green-500 to-red-600"></div>
+                    <div id="currentMetricValue" class="text-center mt-1 font-mono text-amber-400 font-bold tracking-wide text-[10px] md:text-xs">--</div>
+                </div>
+            </div>
+
+            <!-- Z Slider Control — vertical, docked to the right edge so it reads like a
+                 build-plate height gauge: up = higher Z, matching the printer's own axis. -->
+            <div class="absolute top-16 bottom-16 right-2 md:top-20 md:bottom-20 md:right-4 z-10 bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex flex-col items-center gap-1.5 md:gap-2 w-12 md:w-14">
+                <span id="zSliderValue" class="text-[10px] md:text-xs font-mono text-white text-center leading-tight">Max</span>
+
+                <div class="flex-1 relative flex items-center justify-center w-full min-h-0">
+                    <div class="vertical-slider-wrap">
+                        <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-1.5 md:w-2 bg-gray-600 rounded-lg pointer-events-none"></div>
+                        <div id="transitionIndicators" class="absolute inset-0 pointer-events-none z-10"></div>
+                        <input type="range" id="zSlider" min="0" max="100" value="100" step="any" class="appearance-none cursor-pointer z-20 bg-transparent focus:outline-none custom-range-slider">
+                    </div>
+                </div>
+
+                <span class="text-[9px] md:text-[10px] font-bold text-gray-400">0</span>
+
+                <button id="setTransitionBtn" class="bg-gray-700 hover:bg-amber-600 text-white border border-gray-600 hover:border-amber-500 text-[9px] md:text-[10px] font-bold py-1 px-1 rounded transition-all leading-tight" title="Set transition height to current Z-slice">
+                    Set Trans.
+                </button>
+            </div>
+
+            <!-- Bottom control stack: full-print real-time playback on top, per-layer build
+                 scrubber below it. Grouped in a flex column so both share the same footprint
+                 and grow upward together regardless of screen size. -->
+            <div class="absolute bottom-2 left-2 right-16 md:bottom-6 md:left-6 md:right-24 z-10 flex flex-col gap-2">
+
+                <!-- Real-Time Playback — animates the ENTIRE spliced toolpath (every band, not
+                     just the current layer) at a speed derived from each move's own commanded
+                     feedrate, scaled by the multiplier. See buildPreviewData's cumTime note for
+                     what "real-time" does and doesn't account for. -->
+                <div class="bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex items-center gap-2 md:gap-3">
+                    <button id="playbackToggleBtn" class="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded shadow transition-colors" title="Play/Pause real-time toolpath playback">
+                        <svg id="playbackPlayIcon" class="w-3.5 h-3.5 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg id="playbackPauseIcon" class="w-3.5 h-3.5 md:w-4 md:h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"></path></svg>
+                    </button>
+
+                    <button id="inspectJunctionBarBtn" class="flex-shrink-0 px-2 py-1 bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/50 hover:border-amber-400 text-amber-300 rounded text-[10px] md:text-xs font-semibold flex items-center gap-1 transition-colors" title="Zoom super close to transition zone & play">
+                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        <span class="hidden sm:inline">Junction Cam</span>
+                    </button>
+
+                    <div class="flex-1 relative flex items-center h-5 md:h-6">
+                        <div class="absolute inset-x-0 h-1.5 md:h-2 bg-gray-600 rounded-lg pointer-events-none"></div>
+                        <input type="range" id="playbackTimeline" min="0" max="1000" value="0" step="1" class="absolute inset-0 w-full h-full appearance-none cursor-pointer z-20 bg-transparent focus:outline-none custom-range-slider">
+                    </div>
+
+                    <span id="playbackTimeLabel" class="text-[10px] md:text-xs font-mono text-gray-300 w-20 md:w-24 text-right flex-shrink-0">0:00 / 0:00</span>
+
+                    <select id="playbackSpeedSelect" class="flex-shrink-0 bg-gray-900 border border-gray-600 rounded px-1 py-1 text-[10px] md:text-xs text-white focus:outline-none focus:border-amber-400" title="Playback speed multiplier">
+                        <option value="1">1×</option>
+                        <option value="2">2×</option>
+                        <option value="5">5×</option>
+                        <option value="10" selected>10×</option>
+                        <option value="25">25×</option>
+                        <option value="50">50×</option>
+                        <option value="100">100×</option>
+                        <option value="250">250×</option>
+                    </select>
+                </div>
+
+                <!-- Layer Playback Control — scrubs through THIS layer's toolpath moves in the
+                     order they actually print, so you can watch a single layer draw itself
+                     (seams, retracts, infill order) instead of only ever seeing it complete. -->
+                <div class="bg-gray-800/80 backdrop-blur border border-gray-700 p-2 md:p-3 rounded shadow-lg flex items-center gap-2 md:gap-4">
+                    <span class="text-xs md:text-sm font-bold text-gray-300 w-16 md:w-20 leading-tight">Layer<br class="md:hidden">Build:</span>
+
+                    <div class="flex-1 relative flex items-center h-5 md:h-6">
+                        <div class="absolute inset-x-0 h-1.5 md:h-2 bg-gray-600 rounded-lg pointer-events-none"></div>
+                        <input type="range" id="layerPlaybackSlider" min="0" max="100" value="100" class="absolute inset-0 w-full h-full appearance-none cursor-pointer z-20 bg-transparent focus:outline-none custom-range-slider">
+                    </div>
+
+                    <span id="layerPlaybackValue" class="text-xs md:text-sm font-mono text-white w-16 md:w-20 text-right">All moves</span>
+                </div>
+            </div>
+
+            <div id="loadingOverlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden z-20">
+                <div class="text-white text-lg md:text-xl font-semibold flex flex-col items-center gap-3 md:gap-4">
+                    <svg class="animate-spin h-8 w-8 md:h-10 md:w-10 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span id="loadingText">Processing G-Code...</span>
+                </div>
+            </div>
+            
+            <div id="canvas-container" class="flex-1 w-full h-full"></div>
+        </div>
+
+    </main>
+    <script type="module" src="./src/ui/app.ts"></script>
+</body>
+</html>

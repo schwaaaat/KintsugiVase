@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.tempmediaStorage/
+scratch/
+backups/
+index.legacy.html
+test/*.png
